@@ -1,0 +1,41 @@
+security:
+    password_hashers:
+        App\Identity\Domain\Entity\AdminUser:
+            algorithm: bcrypt
+            cost: 12
+
+    providers:
+        admin_users:
+            entity:
+                class: App\Identity\Domain\Entity\AdminUser
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        login:
+            pattern: ^/api/auth/login
+            stateless: true
+            json_login:
+                check_path: /api/auth/login
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
+
+    access_control:
+        - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
+        - { path: ^/api/menu$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/reservations/availability, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/reservations$, roles: PUBLIC_ACCESS, methods: [POST] }
+        - { path: ^/api/orders$, roles: PUBLIC_ACCESS, methods: [POST] }
+        - { path: ^/api/orders/, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/voice, roles: PUBLIC_ACCESS }
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: ROLE_ADMIN }

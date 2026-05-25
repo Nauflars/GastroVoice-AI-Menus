@@ -1,0 +1,33 @@
+# Backend
+backend/vendor/
+backend/var/
+backend/coverage/
+backend/.php-cs-fixer.cache
+backend/config/jwt/private.pem
+backend/config/jwt/public.pem
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+
+# Docker
+.env
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pem
+*.key
+*.cert

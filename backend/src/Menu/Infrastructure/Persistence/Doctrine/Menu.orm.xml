@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Menu\Domain\Entity\MenuCategory" table="menu_categories">
+        <id name="id" type="uuid" column="id"/>
+        <field name="restaurantId" type="uuid" column="restaurant_id" nullable="false"/>
+        <embedded name="name" class="App\Menu\Domain\ValueObject\CategoryName" use-column-prefix="false"/>
+        <field name="displayOrder" type="integer" column="display_order" nullable="false"/>
+        <field name="isActive" type="boolean" column="is_active" nullable="false"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+    </entity>
+
+    <entity name="App\Menu\Domain\Entity\MenuItem" table="menu_items">
+        <id name="id" type="uuid" column="id"/>
+        <field name="categoryId" type="uuid" column="category_id" nullable="false"/>
+        <field name="name" type="string" column="name" length="255" nullable="false"/>
+        <field name="description" type="text" column="description" nullable="true"/>
+        <embedded name="price" class="App\Menu\Domain\ValueObject\Price" use-column-prefix="true" column-prefix="price_"/>
+        <field name="isAvailable" type="boolean" column="is_available" nullable="false"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+        <field name="updatedAt" type="datetime_immutable" column="updated_at" nullable="false"/>
+    </entity>
+
+</doctrine-mapping>

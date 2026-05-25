@@ -1,0 +1,68 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/*/Domain/Entity/'
+            - '../src/*/Domain/ValueObject/'
+            - '../src/Kernel.php'
+
+    # Shared Bus aliases
+    App\Shared\Domain\Bus\CommandBusInterface:
+        alias: App\Shared\Infrastructure\Bus\MessengerCommandBus
+
+    App\Shared\Domain\Bus\QueryBusInterface:
+        alias: App\Shared\Infrastructure\Bus\MessengerQueryBus
+
+    # Repository interface → Doctrine implementation bindings
+    App\Identity\Domain\Repository\AdminUserRepositoryInterface:
+        alias: App\Identity\Infrastructure\Persistence\DoctrineAdminUserRepository
+
+    App\RestaurantManagement\Domain\Repository\RestaurantRepositoryInterface:
+        alias: App\RestaurantManagement\Infrastructure\Persistence\DoctrineRestaurantRepository
+
+    App\Menu\Domain\Repository\MenuCategoryRepositoryInterface:
+        alias: App\Menu\Infrastructure\Persistence\DoctrineMenuCategoryRepository
+
+    App\Menu\Domain\Repository\MenuItemRepositoryInterface:
+        alias: App\Menu\Infrastructure\Persistence\DoctrineMenuItemRepository
+
+    App\Ordering\Domain\Repository\OrderRepositoryInterface:
+        alias: App\Ordering\Infrastructure\Persistence\DoctrineOrderRepository
+
+    App\Reservations\Domain\Repository\ReservationRepositoryInterface:
+        alias: App\Reservations\Infrastructure\Persistence\DoctrineReservationRepository
+
+    App\VoiceAssistant\Domain\Repository\CallSessionRepositoryInterface:
+        alias: App\VoiceAssistant\Infrastructure\Persistence\RedisCallSessionRepository
+
+    App\VoiceAssistant\Application\Port\IntentDetectorPort:
+        alias: App\VoiceAssistant\Infrastructure\AI\OpenAIIntentDetectorAdapter
+
+    App\VoiceAssistant\Application\Port\SpeechToTextPort:
+        alias: App\VoiceAssistant\Infrastructure\AI\OpenAIWhisperAdapter
+
+    App\VoiceAssistant\Application\Port\TextToSpeechPort:
+        alias: App\VoiceAssistant\Infrastructure\AI\OpenAITTSAdapter
+
+    # AI port → adapter binding
+    App\Menu\Application\Port\AIMenuExtractorPort:
+        alias: App\Menu\Infrastructure\AI\OpenAIMenuExtractorAdapter
+
+    # OpenAI client
+    OpenAI\Client:
+        factory: ['OpenAI', 'client']
+        arguments:
+            $apiKey: '%env(OPENAI_API_KEY)%'
+
+    # Redis client
+    Predis\ClientInterface:
+        alias: Predis\Client
+
+    Predis\Client:
+        arguments:
+            $parameters: '%env(REDIS_URL)%'
