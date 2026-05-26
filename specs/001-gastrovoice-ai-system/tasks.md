@@ -113,28 +113,28 @@ The public menu endpoint returns active items grouped by category.
 ### Tests — User Story 2
 
 - [x] T050 [P] [US2] Write unit tests for `MenuItem` entity (`Price` VO, availability toggle, invariants) in `backend/tests/Unit/Menu/Domain/Entity/MenuItemTest.php`
-- [ ] T051 [P] [US2] Write unit tests for `MenuCategory` entity + `CategoryName` VO in `backend/tests/Unit/Menu/Domain/Entity/MenuCategoryTest.php`
-- [ ] T052 [P] [US2] Write unit tests for `CreateMenuItemHandler` and `GetActiveMenuHandler` with mocked repos in `backend/tests/Unit/Menu/Application/Handler/`
-- [ ] T053 [US2] Write functional tests for all menu CRUD endpoints in `backend/tests/Functional/Menu/MenuControllerTest.php` — create, list, update, soft-delete category; same for items; public menu endpoint
+- [x] T051 [P] [US2] Write unit tests for `MenuCategory` entity + `CategoryName` VO in `backend/tests/Unit/Menu/Domain/Entity/MenuCategoryTest.php`
+- [x] T052 [P] [US2] Write unit tests for `CreateMenuItemHandler` and `GetActiveMenuHandler` with mocked repos in `backend/tests/Unit/Menu/Application/Handler/`
+- [x] T053 [US2] Write functional tests for all menu CRUD endpoints in `backend/tests/Functional/Menu/MenuControllerTest.php` — create, list, update, soft-delete category; same for items; public menu endpoint
 
 ### Implementation — User Story 2
 
-- [ ] T054 [P] [US2] Create `backend/src/Menu/Domain/ValueObject/Price.php` — wraps decimal, enforces ≥ 0, formats to string
-- [ ] T055 [P] [US2] Create `backend/src/Menu/Domain/ValueObject/CategoryName.php` — wraps string, enforces non-empty, max 150 chars
-- [ ] T056 [US2] Create `backend/src/Menu/Domain/Entity/MenuCategory.php` — UUID id, restaurantId (UUID, not FK), CategoryName, displayOrder, isActive, createdAt; with `deactivate()` and `rename()` methods
-- [ ] T057 [US2] Create `backend/src/Menu/Domain/Entity/MenuItem.php` — UUID id, categoryId FK, name, description, Price, isAvailable, createdAt, updatedAt; with `updateDetails()` and `toggleAvailability()` methods
-- [ ] T058 [US2] Create `backend/src/Menu/Domain/Event/MenuItemCreated.php` and `MenuItemAvailabilityChanged.php`
-- [ ] T059 [US2] Create `backend/src/Menu/Domain/Repository/MenuCategoryRepositoryInterface.php` and `MenuItemRepositoryInterface.php` (Ports)
-- [ ] T060 [US2] Create Doctrine mappings and `backend/src/Menu/Infrastructure/Persistence/DoctrineMenuCategoryRepository.php` + `DoctrineMenuItemRepository.php`
-- [ ] T061 [US2] Create Doctrine migration for `menu_categories` and `menu_items` tables in `backend/migrations/`
-- [ ] T062 [US2] Create Application Commands + Handlers in `backend/src/Menu/Application/`: `CreateCategoryCommand/Handler`, `UpdateCategoryCommand/Handler`, `DeactivateCategoryCommand/Handler`, `CreateMenuItemCommand/Handler`, `UpdateMenuItemCommand/Handler`, `DeactivateMenuItemCommand/Handler`
-- [ ] T063 [US2] Create `backend/src/Menu/Application/Query/GetActiveMenuQuery.php` + `GetActiveMenuHandler.php` — returns categories with their active items, ordered by displayOrder
-- [ ] T064 [US2] Create `backend/src/Menu/Infrastructure/Http/MenuController.php` — all category CRUD endpoints (JWT protected) + public `GET /api/menu` (no auth) + item CRUD endpoints
-- [ ] T065 [P] [US2] Create React feature slice `frontend/src/features/menu/` — `types.ts`, `api.ts`, `useMenu.ts`, `useMenuMutations.ts`
-- [ ] T066 [P] [US2] Create `frontend/src/features/menu/components/CategoryList.tsx` — displays categories with expand/collapse; add/edit/delete actions
-- [ ] T067 [P] [US2] Create `frontend/src/features/menu/components/MenuItemForm.tsx` — modal form for create/edit item (name, description, price, availability toggle)
-- [ ] T068 [US2] Create `frontend/src/pages/MenuPage.tsx` — assembles CategoryList + MenuItemForm; handles all CRUD interactions
-- [ ] T069 [US2] Write frontend tests for `CategoryList` and `MenuItemForm` components in `frontend/tests/unit/features/menu/`
+- [x] T054 [P] [US2] Create `backend/src/Menu/Domain/ValueObject/Price.php` — wraps decimal, enforces ≥ 0, formats to string
+- [x] T055 [P] [US2] Create `backend/src/Menu/Domain/ValueObject/CategoryName.php` — wraps string, enforces non-empty, max 150 chars
+- [x] T056 [US2] Create `backend/src/Menu/Domain/Entity/MenuCategory.php` — UUID id, restaurantId (UUID, not FK), CategoryName, displayOrder, isActive, createdAt; with `deactivate()` and `rename()` methods
+- [x] T057 [US2] Create `backend/src/Menu/Domain/Entity/MenuItem.php` — UUID id, categoryId FK, name, description, Price, isAvailable, createdAt, updatedAt; with `updateDetails()` and `toggleAvailability()` methods
+- [x] T058 [US2] Create `backend/src/Menu/Domain/Event/MenuItemCreated.php` and `MenuItemAvailabilityChanged.php`
+- [x] T059 [US2] Create `backend/src/Menu/Domain/Repository/MenuCategoryRepositoryInterface.php` and `MenuItemRepositoryInterface.php` (Ports)
+- [x] T060 [US2] Create Doctrine mappings and `backend/src/Menu/Infrastructure/Persistence/DoctrineMenuCategoryRepository.php` + `DoctrineMenuItemRepository.php`
+- [x] T061 [US2] Create Doctrine migration for `menu_categories` and `menu_items` tables in `backend/migrations/`
+- [x] T062 [US2] Create Application Commands + Handlers in `backend/src/Menu/Application/`: `CreateCategoryCommand/Handler`, `UpdateCategoryCommand/Handler`, `DeactivateCategoryCommand/Handler`, `CreateMenuItemCommand/Handler`, `UpdateMenuItemCommand/Handler`, `DeactivateMenuItemCommand/Handler`
+- [x] T063 [US2] Create `backend/src/Menu/Application/Query/GetActiveMenuQuery.php` + `GetActiveMenuHandler.php` — returns categories with their active items, ordered by displayOrder
+- [x] T064 [US2] Create `backend/src/Menu/Infrastructure/Http/MenuController.php` — all category CRUD endpoints (JWT protected) + public `GET /api/menu` (no auth) + item CRUD endpoints
+- [x] T065 [P] [US2] Create React feature slice `frontend/src/features/menu/` — `types.ts`, `api.ts`, `useMenu.ts`, `useMenuMutations.ts`
+- [x] T066 [P] [US2] Create `frontend/src/features/menu/components/CategoryList.tsx` — displays categories with expand/collapse; add/edit/delete actions
+- [x] T067 [P] [US2] Create `frontend/src/features/menu/components/MenuItemForm.tsx` — modal form for create/edit item (name, description, price, availability toggle)
+- [x] T068 [US2] Create `frontend/src/pages/MenuPage.tsx` — assembles CategoryList + MenuItemForm; handles all CRUD interactions
+- [x] T069 [US2] Write frontend tests for `CategoryList` and `MenuItemForm` components in `frontend/tests/unit/features/menu/`
 
 **Checkpoint**: Admin can manage full menu from web panel. Public GET /api/menu returns correct data. All tests green. US2 independently functional.
 
@@ -148,19 +148,19 @@ The public menu endpoint returns active items grouped by category.
 
 ### Tests — User Story 3
 
-- [ ] T070 [P] [US3] Write unit tests for `MenuImportService` domain service in `backend/tests/Unit/Menu/Domain/Service/MenuImportServiceTest.php` — mapping AI response to entities, duplicate detection logic
-- [ ] T071 [P] [US3] Write unit tests for `ImportMenuHandler` with mocked `AIMenuExtractorPort` in `backend/tests/Unit/Menu/Application/Handler/ImportMenuHandlerTest.php`
-- [ ] T072 [P] [US3] Write unit tests for `OpenAIMenuExtractorAdapter` with mocked HTTP client (malformed JSON, empty response, valid response) in `backend/tests/Unit/Menu/Infrastructure/AI/OpenAIMenuExtractorAdapterTest.php`
-- [ ] T073 [US3] Write functional test for import endpoints in `backend/tests/Functional/Menu/MenuImportControllerTest.php` — upload → preview → confirm; and error path (unprocessable image)
+- [x] T070 [P] [US3] Write unit tests for `MenuImportService` domain service in `backend/tests/Unit/Menu/Domain/Service/MenuImportServiceTest.php` — mapping AI response to entities, duplicate detection logic
+- [x] T071 [P] [US3] Write unit tests for `ImportMenuHandler` with mocked `AIMenuExtractorPort` in `backend/tests/Unit/Menu/Application/Handler/ImportMenuHandlerTest.php`
+- [x] T072 [P] [US3] Write unit tests for `OpenAIMenuExtractorAdapter` with mocked HTTP client (malformed JSON, empty response, valid response) in `backend/tests/Unit/Menu/Infrastructure/AI/OpenAIMenuExtractorAdapterTest.php`
+- [x] T073 [US3] Write functional test for import endpoints in `backend/tests/Functional/Menu/MenuImportControllerTest.php` — upload → preview → confirm; and error path (unprocessable image)
 
 ### Implementation — User Story 3
 
-- [ ] T074 [US3] Create `backend/src/Menu/Application/Port/AIMenuExtractorPort.php` — outbound Port interface: `extract(array $imageBase64List): MenuImportPreview`
-- [ ] T075 [P] [US3] Create `backend/src/Menu/Application/DTO/MenuImportPreview.php` — DTO with previewId (UUID stored in Redis), categories array
-- [ ] T076 [US3] Create `backend/src/Menu/Domain/Service/MenuImportService.php` — maps `MenuImportPreview` to `MenuCategory`/`MenuItem` entities; deduplicates by name (case-insensitive)
-- [ ] T077 [US3] Create `backend/src/Menu/Application/Command/ImportMenuCommand.php` + `ImportMenuHandler.php` — calls `AIMenuExtractorPort`, stores preview in Redis (TTL 10 min), returns preview DTO
-- [ ] T078 [US3] Create `backend/src/Menu/Application/Command/ConfirmMenuImportCommand.php` + `ConfirmMenuImportHandler.php` — reads preview from Redis, calls `MenuImportService`, persists via repositories, dispatches `MenuImportCompleted` event
-- [ ] T079 [US3] Create `backend/src/Menu/Infrastructure/AI/OpenAIMenuExtractorAdapter.php` — implements `AIMenuExtractorPort`; calls OpenAI gpt-4.1 with `response_format: json_object`; builds prompt per research.md; validates and returns structured DTO
+- [x] T074 [US3] Create `backend/src/Menu/Application/Port/AIMenuExtractorPort.php` — outbound Port interface: `extract(array $imageBase64List): MenuImportPreview`
+- [x] T075 [P] [US3] Create `backend/src/Menu/Application/DTO/MenuImportPreview.php` — DTO with previewId (UUID stored in Redis), categories array
+- [x] T076 [US3] Create `backend/src/Menu/Domain/Service/MenuImportService.php` — maps `MenuImportPreview` to `MenuCategory`/`MenuItem` entities; deduplicates by name (case-insensitive)
+- [x] T077 [US3] Create `backend/src/Menu/Application/Command/ImportMenuCommand.php` + `ImportMenuHandler.php` — calls `AIMenuExtractorPort`, stores preview in Redis (TTL 10 min), returns preview DTO
+- [x] T078 [US3] Create `backend/src/Menu/Application/Command/ConfirmMenuImportCommand.php` + `ConfirmMenuImportHandler.php` — reads preview from Redis, calls `MenuImportService`, persists via repositories, dispatches `MenuImportCompleted` event
+- [x] T079 [US3] Create `backend/src/Menu/Infrastructure/AI/OpenAIMenuExtractorAdapter.php` — implements `AIMenuExtractorPort`; calls OpenAI gpt-4.1 with `response_format: json_object`; builds prompt per research.md; validates and returns structured DTO
 - [x] T0880 [US3] Create `backend/src/Menu/Infrastructure/Http/MenuImportController.php` — `POST /api/menu/import` (multipart, JWT), `POST /api/menu/import/{previewId}/confirm` (JWT)
 - [x] T0881 [P] [US3] Create `frontend/src/features/menu/components/MenuImportWizard.tsx` — step 1: file drop zone (accept image/*); step 2: preview table with category/item list; step 3: confirm button + success toast
 - [x] T0882 [US3] Integrate `MenuImportWizard` into `frontend/src/pages/MenuPage.tsx` behind an "Import from image" button
