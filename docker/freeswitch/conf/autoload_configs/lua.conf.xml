@@ -1,0 +1,5 @@
+<configuration name="lua.conf" description="Lua Configuration">
+  <settings>
+    <param name="script-directory" value="/usr/share/freeswitch/scripts"/>
+  </settings>
+</configuration>

@@ -1,0 +1,755 @@
+openapi: "3.1.0"
+info:
+  title: GastroVoice AI — Backend API
+  version: "1.0.0"
+  description: >
+    REST API for the GastroVoice AI restaurant management system.
+    Covers authentication, restaurant configuration, menu management,
+    takeaway orders, reservations and voice assistant simulation.
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local Docker Compose
+
+tags:
+  - name: auth
+    description: Authentication
+  - name: restaurant
+    description: Restaurant configuration
+  - name: menu
+    description: Menu categories and items
+  - name: orders
+    description: Takeaway orders
+  - name: reservations
+    description: Table reservations
+  - name: voice
+    description: Voice assistant simulation
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Security
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    # ── Common ────────────────────────────────────────────────────────────────
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:    { type: string }
+        message: { type: string }
+
+    UUID:
+      type: string
+      format: uuid
+
+    # ── Auth ──────────────────────────────────────────────────────────────────
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:    { type: string, format: email }
+        password: { type: string, minLength: 8 }
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:  { type: string }
+        refreshToken: { type: string }
+        expiresIn:    { type: integer, description: "Seconds until access token expiry" }
+
+    # ── Restaurant ────────────────────────────────────────────────────────────
+    OpeningHour:
+      type: object
+      properties:
+        dayOfWeek: { type: string, enum: [monday, tuesday, wednesday, thursday, friday, saturday, sunday] }
+        openTime:  { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", example: "09:00" }
+        closeTime: { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", example: "22:00" }
+        isClosed:  { type: boolean, default: false }
+
+    Restaurant:
+      type: object
+      properties:
+        id:                   { $ref: "#/components/schemas/UUID" }
+        name:                 { type: string }
+        address:              { type: string }
+        phone:                { type: string }
+        seatCapacity:         { type: integer, minimum: 1 }
+        slotDurationMinutes:  { type: integer, minimum: 15, default: 60 }
+        timezone:             { type: string, example: "Europe/Madrid" }
+        openingHours:
+          type: array
+          items: { $ref: "#/components/schemas/OpeningHour" }
+
+    UpdateRestaurantRequest:
+      type: object
+      properties:
+        name:                { type: string }
+        address:             { type: string }
+        phone:               { type: string }
+        seatCapacity:        { type: integer, minimum: 1 }
+        slotDurationMinutes: { type: integer, minimum: 15 }
+        timezone:            { type: string }
+        openingHours:
+          type: array
+          items: { $ref: "#/components/schemas/OpeningHour" }
+
+    # ── Menu ──────────────────────────────────────────────────────────────────
+    MenuCategory:
+      type: object
+      properties:
+        id:           { $ref: "#/components/schemas/UUID" }
+        name:         { type: string }
+        displayOrder: { type: integer }
+        isActive:     { type: boolean }
+
+    MenuItem:
+      type: object
+      properties:
+        id:          { $ref: "#/components/schemas/UUID" }
+        categoryId:  { $ref: "#/components/schemas/UUID" }
+        name:        { type: string }
+        description: { type: string, nullable: true }
+        price:       { type: number, format: float, minimum: 0 }
+        isAvailable: { type: boolean }
+
+    CreateCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:         { type: string, maxLength: 150 }
+        displayOrder: { type: integer, default: 0 }
+
+    CreateMenuItemRequest:
+      type: object
+      required: [categoryId, name, price]
+      properties:
+        categoryId:  { $ref: "#/components/schemas/UUID" }
+        name:        { type: string, maxLength: 255 }
+        description: { type: string }
+        price:       { type: number, format: float, minimum: 0 }
+        isAvailable: { type: boolean, default: true }
+
+    UpdateMenuItemRequest:
+      type: object
+      properties:
+        name:        { type: string }
+        description: { type: string }
+        price:       { type: number, format: float, minimum: 0 }
+        isAvailable: { type: boolean }
+
+    ActiveMenu:
+      type: object
+      description: Public menu grouped by category
+      properties:
+        restaurantId: { $ref: "#/components/schemas/UUID" }
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:           { $ref: "#/components/schemas/UUID" }
+              name:         { type: string }
+              displayOrder: { type: integer }
+              items:
+                type: array
+                items: { $ref: "#/components/schemas/MenuItem" }
+
+    MenuImportPreview:
+      type: object
+      properties:
+        previewId:  { type: string, description: "Temporary ID for confirming the import" }
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              name:  { type: string }
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:        { type: string }
+                    description: { type: string }
+                    price:       { type: number }
+
+    # ── Orders ────────────────────────────────────────────────────────────────
+    OrderLine:
+      type: object
+      properties:
+        menuItemId:   { $ref: "#/components/schemas/UUID" }
+        menuItemName: { type: string }
+        unitPrice:    { type: number }
+        quantity:     { type: integer, minimum: 1 }
+        lineTotal:    { type: number }
+
+    Order:
+      type: object
+      properties:
+        id:            { $ref: "#/components/schemas/UUID" }
+        status:        { type: string, enum: [pending, confirmed, preparing, ready, collected, cancelled] }
+        pickupAt:      { type: string, format: date-time }
+        totalAmount:   { type: number }
+        customerName:  { type: string }
+        customerPhone: { type: string }
+        notes:         { type: string, nullable: true }
+        lines:
+          type: array
+          items: { $ref: "#/components/schemas/OrderLine" }
+        createdAt: { type: string, format: date-time }
+
+    CreateOrderRequest:
+      type: object
+      required: [pickupAt, customerName, customerPhone, lines]
+      properties:
+        pickupAt:      { type: string, format: date-time }
+        customerName:  { type: string }
+        customerPhone: { type: string }
+        notes:         { type: string }
+        lines:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [menuItemId, quantity]
+            properties:
+              menuItemId: { $ref: "#/components/schemas/UUID" }
+              quantity:   { type: integer, minimum: 1 }
+
+    UpdateOrderStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [confirmed, preparing, ready, collected, cancelled] }
+
+    # ── Reservations ─────────────────────────────────────────────────────────
+    Reservation:
+      type: object
+      properties:
+        id:            { $ref: "#/components/schemas/UUID" }
+        reservationDate: { type: string, format: date }
+        timeSlot:       { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" }
+        numPeople:      { type: integer, minimum: 1 }
+        customerName:   { type: string }
+        customerPhone:  { type: string }
+        customerEmail:  { type: string, format: email, nullable: true }
+        status:         { type: string, enum: [pending, confirmed, cancelled] }
+        notes:          { type: string, nullable: true }
+        createdAt:      { type: string, format: date-time }
+
+    CreateReservationRequest:
+      type: object
+      required: [reservationDate, timeSlot, numPeople, customerName, customerPhone]
+      properties:
+        reservationDate: { type: string, format: date }
+        timeSlot:        { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" }
+        numPeople:       { type: integer, minimum: 1 }
+        customerName:    { type: string }
+        customerPhone:   { type: string }
+        customerEmail:   { type: string, format: email }
+        notes:           { type: string }
+
+    AvailabilityResponse:
+      type: object
+      properties:
+        isAvailable:      { type: boolean }
+        availableCapacity: { type: integer }
+        nextAvailableSlot: { type: string, nullable: true, description: "ISO 8601 datetime" }
+
+    # ── Voice ─────────────────────────────────────────────────────────────────
+    VoiceSimulateRequest:
+      type: object
+      required: [sessionId, message]
+      properties:
+        sessionId:    { type: string }
+        message:      { type: string }
+        restaurantId: { $ref: "#/components/schemas/UUID" }
+
+    VoiceSimulateResponse:
+      type: object
+      properties:
+        sessionId: { type: string }
+        intent:    { type: string }
+        reply:     { type: string }
+        data:      { type: object, additionalProperties: true }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Auth ────────────────────────────────────────────────────────────────────
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Obtain JWT access and refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Tokens
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoginResponse" }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        "200":
+          description: New access token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoginResponse" }
+
+  # ── Restaurant ──────────────────────────────────────────────────────────────
+  /restaurant:
+    get:
+      tags: [restaurant]
+      summary: Get restaurant configuration
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Restaurant details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Restaurant" }
+    put:
+      tags: [restaurant]
+      summary: Update restaurant configuration
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateRestaurantRequest" }
+      responses:
+        "200":
+          description: Updated restaurant
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Restaurant" }
+
+  # ── Menu Categories ─────────────────────────────────────────────────────────
+  /menu/categories:
+    get:
+      tags: [menu]
+      summary: List all categories (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MenuCategory" }
+    post:
+      tags: [menu]
+      summary: Create a menu category
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategoryRequest" }
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuCategory" }
+
+  /menu/categories/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/UUID" }
+    put:
+      tags: [menu]
+      summary: Update a category
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategoryRequest" }
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuCategory" }
+    delete:
+      tags: [menu]
+      summary: Soft-delete a category
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Deleted }
+
+  # ── Menu Items ──────────────────────────────────────────────────────────────
+  /menu/items:
+    get:
+      tags: [menu]
+      summary: List all menu items (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: categoryId
+          in: query
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Item list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MenuItem" }
+    post:
+      tags: [menu]
+      summary: Create a menu item
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateMenuItemRequest" }
+      responses:
+        "201":
+          description: Created item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuItem" }
+
+  /menu/items/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/UUID" }
+    put:
+      tags: [menu]
+      summary: Update a menu item
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateMenuItemRequest" }
+      responses:
+        "200":
+          description: Updated item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuItem" }
+    delete:
+      tags: [menu]
+      summary: Soft-delete a menu item
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: Deleted }
+
+  # ── Public Menu ─────────────────────────────────────────────────────────────
+  /menu:
+    get:
+      tags: [menu]
+      summary: Get active public menu (no auth)
+      responses:
+        "200":
+          description: Active menu grouped by category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActiveMenu" }
+
+  # ── Menu Import ─────────────────────────────────────────────────────────────
+  /menu/import:
+    post:
+      tags: [menu]
+      summary: Upload menu image(s) for AI extraction
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        "200":
+          description: AI extraction preview (not yet persisted)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuImportPreview" }
+        "422":
+          description: Could not extract menu from image
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /menu/import/{previewId}/confirm:
+    post:
+      tags: [menu]
+      summary: Confirm and persist AI-extracted menu
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: previewId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "201":
+          description: Menu persisted; returns created categories and items count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categoriesCreated: { type: integer }
+                  itemsCreated:      { type: integer }
+
+  # ── Orders ──────────────────────────────────────────────────────────────────
+  /orders:
+    get:
+      tags: [orders]
+      summary: List orders (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [pending, confirmed, preparing, ready, collected, cancelled] }
+        - name: date
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Order" }
+    post:
+      tags: [orders]
+      summary: Create a takeaway order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateOrderRequest" }
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "422":
+          description: Unavailable items or invalid data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /orders/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/UUID" }
+    get:
+      tags: [orders]
+      summary: Get order detail
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+    patch:
+      tags: [orders]
+      summary: Update order status (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateOrderStatusRequest" }
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+
+  # ── Reservations ────────────────────────────────────────────────────────────
+  /reservations/availability:
+    get:
+      tags: [reservations]
+      summary: Check slot availability
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: timeSlot
+          in: query
+          required: true
+          schema: { type: string }
+        - name: numPeople
+          in: query
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Availability result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AvailabilityResponse" }
+
+  /reservations:
+    get:
+      tags: [reservations]
+      summary: List reservations (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: date
+          in: query
+          schema: { type: string, format: date }
+        - name: status
+          in: query
+          schema: { type: string, enum: [pending, confirmed, cancelled] }
+      responses:
+        "200":
+          description: Reservation list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Reservation" }
+    post:
+      tags: [reservations]
+      summary: Create a reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateReservationRequest" }
+      responses:
+        "201":
+          description: Created reservation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reservation" }
+        "409":
+          description: Slot full — reservation rejected
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reservations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/UUID" }
+    get:
+      tags: [reservations]
+      summary: Get reservation detail
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Reservation detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reservation" }
+
+  /reservations/{id}/cancel:
+    post:
+      tags: [reservations]
+      summary: Cancel a reservation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/UUID" }
+      responses:
+        "200":
+          description: Cancelled reservation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reservation" }
+
+  # ── Voice ───────────────────────────────────────────────────────────────────
+  /voice/simulate:
+    post:
+      tags: [voice]
+      summary: Simulate a voice call turn via HTTP (no audio)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VoiceSimulateRequest" }
+      responses:
+        "200":
+          description: Assistant reply and detected intent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VoiceSimulateResponse" }
+
+  /voice/call:
+    post:
+      tags: [voice]
+      summary: AGI audio callback from Asterisk
+      description: >
+        Receives a WAV audio file from the Asterisk AGI script, transcribes it,
+        detects intent, executes business logic and returns TTS audio URL.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [sessionId, audio]
+              properties:
+                sessionId:    { type: string }
+                restaurantId: { $ref: "#/components/schemas/UUID" }
+                audio:        { type: string, format: binary, description: "WAV 8kHz 16-bit mono" }
+      responses:
+        "200":
+          description: TTS audio URL and reply text
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audioUrl: { type: string, format: uri }
+                  reply:    { type: string }
+                  intent:   { type: string }

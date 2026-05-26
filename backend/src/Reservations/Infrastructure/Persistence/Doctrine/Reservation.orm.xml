@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Reservations\Domain\Entity\Reservation" table="reservations">
+        <id name="id" type="uuid" column="id"/>
+        <field name="restaurantId" type="uuid" column="restaurant_id" nullable="false"/>
+        <field name="date" type="date_immutable" column="date" nullable="false"/>
+        <field name="timeSlotValue" type="string" column="time_slot" length="5" nullable="false"/>
+        <field name="numPeople" type="integer" column="num_people" nullable="false"/>
+        <field name="customerName" type="string" column="customer_name" length="255" nullable="false"/>
+        <field name="customerPhone" type="string" column="customer_phone" length="50" nullable="true"/>
+        <field name="customerEmail" type="string" column="customer_email" length="255" nullable="true"/>
+        <field name="notes" type="text" column="notes" nullable="true"/>
+        <field name="statusValue" type="string" column="status" length="20" nullable="false"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+    </entity>
+
+</doctrine-mapping>

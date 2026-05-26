@@ -1,0 +1,18 @@
+<include>
+  <context name="default">
+
+    <!-- Any dialled number → GastroVoice AI conversation -->
+    <extension name="gastrovoice_ai">
+      <condition field="destination_number" expression="^(\d+)$">
+        <action application="answer"/>
+        <action application="set" data="GASTROVOICE_API=$${gastrovoice_api}"/>
+        <action application="set" data="RESTAURANT_ID=$${restaurant_id}"/>
+        <!-- Small pause so the codec is fully negotiated before recording -->
+        <action application="sleep" data="500"/>
+        <action application="lua" data="gastrovoice.lua"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+
+  </context>
+</include>

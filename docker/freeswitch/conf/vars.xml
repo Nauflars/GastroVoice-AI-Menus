@@ -1,0 +1,16 @@
+<include>
+  <!-- Network / domain -->
+  <X-PRE-PROCESS cmd="set" data="domain=$${local_ip_v4}"/>
+  <X-PRE-PROCESS cmd="set" data="domain_name=$${domain}"/>
+
+  <!-- SIP account password for softphone -->
+  <X-PRE-PROCESS cmd="set" data="default_password=gastrovoice123"/>
+
+  <!-- GastroVoice AI backend -->
+  <X-PRE-PROCESS cmd="set" data="gastrovoice_api=http://backend:8080"/>
+  <X-PRE-PROCESS cmd="set" data="restaurant_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>
+
+  <!-- Codecs -->
+  <X-PRE-PROCESS cmd="set" data="global_codec_prefs=PCMU,PCMA,G722"/>
+  <X-PRE-PROCESS cmd="set" data="outbound_codec_prefs=PCMU,PCMA,G722"/>
+</include>
