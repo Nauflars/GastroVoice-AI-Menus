@@ -10,6 +10,9 @@
   <X-PRE-PROCESS cmd="set" data="gastrovoice_api=http://backend:8080"/>
   <X-PRE-PROCESS cmd="set" data="restaurant_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>
 
+  <!-- Media Bridge (for Realtime mode) -->
+  <X-PRE-PROCESS cmd="set" data="media_bridge_ws=ws://media-bridge:8765"/>
+
   <!-- Codecs -->
   <X-PRE-PROCESS cmd="set" data="global_codec_prefs=PCMU,PCMA,G722"/>
   <X-PRE-PROCESS cmd="set" data="outbound_codec_prefs=PCMU,PCMA,G722"/>

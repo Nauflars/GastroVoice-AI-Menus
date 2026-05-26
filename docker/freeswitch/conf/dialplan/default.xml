@@ -1,13 +1,42 @@
 <include>
   <context name="default">
 
-    <!-- Any dialled number → GastroVoice AI conversation -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <!-- Extension 100: Traditional mode                                     -->
+    <!-- Audio → Whisper STT → gpt-4.1-mini (intent) → TTS → Audio          -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <extension name="gastrovoice_traditional">
+      <condition field="destination_number" expression="^100$">
+        <action application="answer"/>
+        <action application="set" data="GASTROVOICE_API=$${gastrovoice_api}"/>
+        <action application="set" data="RESTAURANT_ID=$${restaurant_id}"/>
+        <action application="sleep" data="500"/>
+        <action application="lua" data="gastrovoice.lua"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <!-- Extension 200: Realtime mode                                        -->
+    <!-- Audio → gpt-4o-mini-realtime → Audio (bidirectional WebSocket)      -->
+    <!-- Uses mod_audio_fork to stream audio to the media-bridge service.    -->
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+    <extension name="gastrovoice_realtime">
+      <condition field="destination_number" expression="^200$">
+        <action application="answer"/>
+        <action application="set" data="RECORD_STEREO=false"/>
+        <action application="sleep" data="500"/>
+        <action application="lua" data="gastrovoice_realtime.lua"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+
+    <!-- Catch-all: traditional mode for any other dialled number -->
     <extension name="gastrovoice_ai">
       <condition field="destination_number" expression="^(\d+)$">
         <action application="answer"/>
         <action application="set" data="GASTROVOICE_API=$${gastrovoice_api}"/>
         <action application="set" data="RESTAURANT_ID=$${restaurant_id}"/>
-        <!-- Small pause so the codec is fully negotiated before recording -->
         <action application="sleep" data="500"/>
         <action application="lua" data="gastrovoice.lua"/>
         <action application="hangup"/>

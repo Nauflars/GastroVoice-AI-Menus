@@ -22,6 +22,11 @@ services:
       MESSENGER_TRANSPORT_DSN: "redis://redis:6379/messages"
       CORS_ALLOW_ORIGIN: "^https?://(localhost|127\\.0\\.0\\.1)(:[0-9]+)?$$"
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MENU_MODEL: ${OPENAI_MENU_MODEL:-gpt-4.1}
+      OPENAI_INTENT_MODEL: ${OPENAI_INTENT_MODEL:-gpt-4.1-mini}
+      OPENAI_REALTIME_MODEL: ${OPENAI_REALTIME_MODEL:-gpt-4o-mini-realtime}
+      OPENAI_TTS_MODEL: ${OPENAI_TTS_MODEL:-tts-1}
+      OPENAI_TTS_VOICE: ${OPENAI_TTS_VOICE:-alloy}
     depends_on:
       db:
         condition: service_healthy
@@ -65,13 +70,58 @@ services:
       dockerfile: Dockerfile
     profiles:
       - telephony
-    network_mode: host
-    volumes: []
+    ports:
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+      - "16384-16484:16384-16484/udp"
     environment:
-      GASTROVOICE_API: "http://localhost:18080"
-      RESTAURANT_ID: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      GASTROVOICE_API: "http://backend:8080"
+      RESTAURANT_ID: "${RESTAURANT_ID:-a1b2c3d4-e5f6-7890-abcd-ef1234567890}"
+      MEDIA_BRIDGE_WS: "ws://media-bridge:8765"
     depends_on:
       - backend
+      - media-bridge
+    networks:
+      - gastrovoice
+
+  asterisk:
+    build:
+      context: .
+      dockerfile: docker/asterisk/Dockerfile
+    profiles:
+      - telephony
+    ports:
+      - "5061:5060/udp"
+      - "10000-10100:10000-10100/udp"
+    environment:
+      GASTROVOICE_API: "http://backend:8080"
+      RESTAURANT_ID: "${RESTAURANT_ID:-a1b2c3d4-e5f6-7890-abcd-ef1234567890}"
+    depends_on:
+      - backend
+      - media-bridge
+    networks:
+      - gastrovoice
+
+  media-bridge:
+    build:
+      context: docker/media-bridge
+      dockerfile: Dockerfile
+    profiles:
+      - telephony
+    ports:
+      - "8765:8765"
+      - "9093:9093"
+    environment:
+      GASTROVOICE_API_URL: "http://backend:8080"
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_REALTIME_MODEL: ${OPENAI_REALTIME_MODEL:-gpt-4o-mini-realtime}
+      DEFAULT_VOICE: ${OPENAI_TTS_VOICE:-coral}
+      DEFAULT_RESTAURANT_ID: "${RESTAURANT_ID:-a1b2c3d4-e5f6-7890-abcd-ef1234567890}"
+      DEFAULT_RESTAURANT_NAME: "${RESTAURANT_NAME:-el restaurante}"
+    depends_on:
+      - backend
+    networks:
+      - gastrovoice
 
   frontend:
     build:

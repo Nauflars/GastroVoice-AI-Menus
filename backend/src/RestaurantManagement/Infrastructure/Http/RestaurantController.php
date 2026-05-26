@@ -86,6 +86,28 @@ final class RestaurantController extends AbstractController
             openingHours: (array) ($data['openingHours'] ?? []),
         ));
 
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        $restaurant = $this->queryBus->ask(new GetRestaurantQuery($restaurantId));
+
+        return $this->json([
+            'id' => (string) $restaurant->getId(),
+            'name' => $restaurant->getName(),
+            'address' => $restaurant->getAddress(),
+            'phone' => $restaurant->getPhone(),
+            'seatCapacity' => $restaurant->getSeatCapacity()->value(),
+            'slotDurationMinutes' => $restaurant->getSlotDuration()->minutes(),
+            'timezone' => $restaurant->getTimezone(),
+            'openingHours' => array_map(
+                static fn ($oh) => [
+                    'id' => (string) $oh->getId(),
+                    'dayOfWeek' => $oh->getDayOfWeek(),
+                    'openTime' => $oh->getOpenTime(),
+                    'closeTime' => $oh->getCloseTime(),
+                    'isClosed' => $oh->isClosed(),
+                ],
+                $restaurant->getOpeningHours(),
+            ),
+            'createdAt' => $restaurant->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'updatedAt' => $restaurant->getUpdatedAt()->format(\DateTimeInterface::ATOM),
+        ]);
     }
 }

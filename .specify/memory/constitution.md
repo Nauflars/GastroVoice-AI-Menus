@@ -75,6 +75,13 @@ constitution amendment.
 - **Shared contracts**: `contracts/` — OpenAPI specs and shared event schemas.
 - Docker Compose MUST be provided for local development, covering all services.
 
+## Development Environment
+
+- **All terminal commands MUST be executed inside WSL2 (Ubuntu 20.04)**, never from Windows
+  PowerShell or CMD. The workspace path is `/var/www/GastroVoice-AI`.
+- When running Docker, PHP, npm, git, or any CLI tool, always use the WSL terminal directly.
+- File ownership inside WSL MUST belong to the developer user (`nhaddouche`), not `root`.
+
 ## Development Workflow
 
 - Feature branches created from `main`; branch name convention: `feat/<ticket>-<slug>`.

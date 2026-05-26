@@ -8,6 +8,7 @@ use App\Ordering\Application\Command\PlaceOrderCommand;
 use App\Ordering\Application\Command\PlaceOrderLineDTO;
 use App\Ordering\Application\Command\UpdateOrderStatusCommand;
 use App\Ordering\Application\Query\GetOrdersQuery;
+use App\Ordering\Domain\Repository\OrderRepositoryInterface;
 use App\Shared\Domain\Bus\CommandBusInterface;
 use App\Shared\Domain\Bus\QueryBusInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/api/orders')]
 final class OrderController extends AbstractController
@@ -22,6 +24,7 @@ final class OrderController extends AbstractController
     public function __construct(
         private CommandBusInterface $commandBus,
         private QueryBusInterface $queryBus,
+        private OrderRepositoryInterface $orderRepo,
     ) {}
 
     #[Route('', methods: ['GET'])]
@@ -57,10 +60,21 @@ final class OrderController extends AbstractController
                 $lines,
                 $data['notes'] ?? null,
             ));
-            return $this->json(['id' => (string) $order->getId()], Response::HTTP_CREATED);
+            return $this->json($this->serializeOrder($order), Response::HTTP_CREATED);
         } catch (\DomainException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+    }
+
+    #[Route('/{id}', methods: ['GET'])]
+    public function show(string $id): JsonResponse
+    {
+        $order = $this->orderRepo->findById(Uuid::fromString($id));
+        if ($order === null) {
+            return $this->json(['code' => 'not_found', 'message' => 'Order not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($this->serializeOrder($order));
     }
 
     #[Route('/{id}', methods: ['PATCH'])]
@@ -70,10 +84,32 @@ final class OrderController extends AbstractController
 
         try {
             $this->commandBus->dispatch(new UpdateOrderStatusCommand($id, $data['status'] ?? ''));
-            return $this->json(null, Response::HTTP_NO_CONTENT);
+            $order = $this->orderRepo->findById(Uuid::fromString($id));
+            return $this->json($this->serializeOrder($order));
         } catch (\DomainException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+    }
+
+    private function serializeOrder(object $order): array
+    {
+        return [
+            'id'            => (string) $order->getId(),
+            'status'        => $order->getStatus()->value,
+            'source'        => $order->getSource()->value,
+            'tableNumber'   => $order->getTableNumber(),
+            'customerPhone' => $order->getCustomerPhone(),
+            'notes'         => $order->getNotes(),
+            'totalAmount'   => $order->getTotal(),
+            'lines'         => array_map(fn($l) => [
+                'menuItemId'   => (string) $l->getMenuItemId(),
+                'menuItemName' => $l->getMenuItemName(),
+                'unitPrice'    => $l->getUnitPrice(),
+                'quantity'     => $l->getQuantity(),
+                'lineTotal'    => $l->getLineTotal(),
+            ], $order->getLines()),
+            'createdAt' => $order->getCreatedAt()->format(\DateTimeInterface::ATOM),
+        ];
     }
 
     private function getRestaurantId(): string

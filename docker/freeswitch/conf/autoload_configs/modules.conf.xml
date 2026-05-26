@@ -22,5 +22,8 @@
     <load module="mod_sndfile"/>
     <load module="mod_native_file"/>
     <load module="mod_tone_stream"/>
+
+    <!-- Audio fork — streams call audio to WebSocket (Realtime mode) -->
+    <load module="mod_audio_fork"/>
   </modules>
 </configuration>

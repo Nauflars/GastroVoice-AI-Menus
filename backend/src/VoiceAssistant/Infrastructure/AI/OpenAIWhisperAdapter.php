@@ -16,6 +16,7 @@ final class OpenAIWhisperAdapter implements SpeechToTextPort
         $response = $this->openai->audio()->transcribe([
             'model' => 'whisper-1',
             'file'  => fopen($audioPath, 'r'),
+            'language' => 'es',
         ]);
 
         return $response->text ?? '';

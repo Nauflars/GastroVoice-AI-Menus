@@ -20,6 +20,19 @@ const INTENT_COLORS: Record<string, string> = {
   unknown: 'bg-gray-100 text-gray-800',
 };
 
+const VOICE_OPTIONS = [
+  { value: 'alloy',   label: 'Alloy',   desc: 'Neutral' },
+  { value: 'ash',     label: 'Ash',     desc: 'Conversational' },
+  { value: 'ballad',  label: 'Ballad',  desc: 'Warm' },
+  { value: 'coral',   label: 'Coral',   desc: 'Friendly' },
+  { value: 'echo',    label: 'Echo',    desc: 'Clear' },
+  { value: 'fable',   label: 'Fable',   desc: 'Expressive' },
+  { value: 'onyx',    label: 'Onyx',    desc: 'Deep' },
+  { value: 'nova',    label: 'Nova',    desc: 'Bright' },
+  { value: 'sage',    label: 'Sage',    desc: 'Calm' },
+  { value: 'shimmer', label: 'Shimmer', desc: 'Soft' },
+] as const;
+
 export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSimulatorProps) {
   const [history, setHistory] = useState<ConversationTurn[]>([]);
   const [input, setInput] = useState('');
@@ -28,6 +41,7 @@ export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSi
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mode, setMode] = useState<Mode>('text');
+  const [selectedVoice, setSelectedVoice] = useState('coral');
   const bottomRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -103,6 +117,7 @@ export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSi
       form.append('restaurantId', restaurantId);
       if (sessionId) form.append('sessionId', sessionId);
       form.append('callerId', 'browser');
+      form.append('voice', selectedVoice);
 
       const res = await fetch(`${API_URL}/api/voice/call`, {
         method: 'POST',
@@ -167,7 +182,7 @@ export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSi
     if (realtime.status === 'connected' || realtime.status === 'connecting') {
       realtime.stop();
     } else {
-      await realtime.start(restaurantId, restaurantName);
+      await realtime.start(restaurantId, restaurantName, selectedVoice);
     }
   };
 
@@ -210,6 +225,29 @@ export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSi
             Reset
           </button>
         </div>
+      </div>
+
+      {/* Voice selector */}
+      <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b text-sm">
+        <label htmlFor="voice-select" className="text-gray-500 font-medium whitespace-nowrap">
+          🗣️ Voz:
+        </label>
+        <select
+          id="voice-select"
+          value={selectedVoice}
+          onChange={e => setSelectedVoice(e.target.value)}
+          disabled={realtime.status === 'connected'}
+          className="flex-1 rounded-md border-gray-300 bg-white px-2 py-1 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {VOICE_OPTIONS.map(v => (
+            <option key={v.value} value={v.value}>
+              {v.label} — {v.desc}
+            </option>
+          ))}
+        </select>
+        {realtime.status === 'connected' && (
+          <span className="text-xs text-gray-400">Desconecta para cambiar</span>
+        )}
       </div>
 
       {/* Conversation */}

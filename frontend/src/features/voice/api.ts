@@ -26,10 +26,12 @@ export interface RealtimeSessionResponse {
 export async function createRealtimeSession(
   restaurantId: string,
   restaurantName?: string,
+  voice?: string,
 ): Promise<RealtimeSessionResponse> {
   const response = await apiClient.post('/api/voice/realtime-session', {
     restaurantId,
     restaurantName,
+    voice,
   });
   return response.data;
 }
