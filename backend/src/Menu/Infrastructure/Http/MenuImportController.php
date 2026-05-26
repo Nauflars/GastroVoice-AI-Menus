@@ -26,6 +26,12 @@ final class MenuImportController extends AbstractController
             return $this->json(['error' => 'No image uploaded.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $clientMime = $image->getClientMimeType() ?? '';
+        if (!in_array($clientMime, $allowedMimes, true)) {
+            return $this->json(['error' => 'Unsupported image format. Please upload a JPG, PNG, WEBP or GIF file.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $restaurantId = $this->getRestaurantId();
 
         try {

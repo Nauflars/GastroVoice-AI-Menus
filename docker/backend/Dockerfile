@@ -1,16 +1,14 @@
 FROM php:8.3-fpm-alpine AS base
 
-RUN apk add --no-cache \
-    postgresql-dev \
-    linux-headers \
-    icu-dev \
-    oniguruma-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    git \
-    nginx \
-    supervisor \
+# Build-time deps (compiler, headers) — needed for pecl + ext compile
+RUN apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        postgresql-dev \
+        linux-headers \
+        icu-dev \
+        oniguruma-dev \
+        libzip-dev \
+        util-linux-dev \
     && docker-php-ext-install \
         pdo_pgsql \
         intl \
@@ -19,7 +17,20 @@ RUN apk add --no-cache \
         bcmath \
         sockets \
     && pecl install redis uuid \
-    && docker-php-ext-enable redis uuid
+    && docker-php-ext-enable redis uuid \
+    && apk del .build-deps \
+    # Runtime libs (keep these — needed at runtime)
+    && apk add --no-cache \
+        libpq \
+        icu-libs \
+        libzip \
+        oniguruma \
+        libuuid \
+        zip \
+        unzip \
+        git \
+        nginx \
+        supervisor
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

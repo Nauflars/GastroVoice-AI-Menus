@@ -5,21 +5,52 @@ declare(strict_types=1);
 namespace App\Menu\Domain\Entity;
 
 use App\Menu\Domain\ValueObject\Price;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'menu_items')]
 class MenuItem
 {
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $id;
+
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $categoryId;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private string $name;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description;
+
+    #[ORM\Embedded(class: Price::class, columnPrefix: 'price_')]
+    private Price $price;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isAvailable;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
     public function __construct(
-        private Uuid $id,
-        private Uuid $categoryId,
-        private string $name,
-        private ?string $description,
-        private Price $price,
-        private bool $isAvailable = true,
+        Uuid $id,
+        Uuid $categoryId,
+        string $name,
+        ?string $description,
+        Price $price,
+        bool $isAvailable = true,
     ) {
+        $this->id = $id;
+        $this->categoryId = $categoryId;
+        $this->name = $name;
+        $this->description = $description;
+        $this->price = $price;
+        $this->isAvailable = $isAvailable;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }

@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace App\Menu\Domain\ValueObject;
 
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Embeddable]
 final class Price
 {
-    private function __construct(private readonly float $amount, private readonly string $currency)
+    #[ORM\Column(type: 'float', name: 'amount')]
+    private float $amount = 0.0;
+
+    #[ORM\Column(type: 'string', length: 3, name: 'currency')]
+    private string $currency = 'EUR';
+
+    public function __construct(float $amount = 0.0, string $currency = 'EUR')
     {
-        if ($amount < 0) {
-            throw new \InvalidArgumentException('Price amount cannot be negative.');
-        }
-        if (strlen(trim($currency)) !== 3) {
-            throw new \InvalidArgumentException('Currency must be a 3-letter ISO code.');
-        }
+        $this->amount = $amount;
+        $this->currency = $currency;
     }
 
     public static function of(float $amount, string $currency = 'EUR'): self

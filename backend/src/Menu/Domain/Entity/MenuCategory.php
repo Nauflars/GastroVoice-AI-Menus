@@ -5,19 +5,44 @@ declare(strict_types=1);
 namespace App\Menu\Domain\Entity;
 
 use App\Menu\Domain\ValueObject\CategoryName;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'menu_categories')]
 class MenuCategory
 {
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $id;
+
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $restaurantId;
+
+    #[ORM\Embedded(class: CategoryName::class, columnPrefix: false)]
+    private CategoryName $name;
+
+    #[ORM\Column(type: 'integer')]
+    private int $displayOrder;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isActive;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
     public function __construct(
-        private Uuid $id,
-        private Uuid $restaurantId,
-        private CategoryName $name,
-        private int $displayOrder,
-        private bool $isActive = true,
+        Uuid $id,
+        Uuid $restaurantId,
+        CategoryName $name,
+        int $displayOrder,
+        bool $isActive = true,
     ) {
+        $this->id = $id;
+        $this->restaurantId = $restaurantId;
+        $this->name = $name;
+        $this->displayOrder = $displayOrder;
+        $this->isActive = $isActive;
         $this->createdAt = new \DateTimeImmutable();
     }
 

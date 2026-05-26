@@ -10,25 +10,34 @@ use Symfony\Component\Uid\Uuid;
 
 final class ReservationAvailabilityChecker
 {
+    public const MAX_TABLES = 10;
+
     public function __construct(private ReservationRepositoryInterface $repo) {}
 
-    public function getAvailableCapacity(
+    public function getAvailableTables(
         Uuid $restaurantId,
         \DateTimeImmutable $date,
         TimeSlot $timeSlot,
-        int $totalCapacity,
     ): int {
-        $booked = $this->repo->sumPeopleForSlot($restaurantId, $date, $timeSlot);
-        return max(0, $totalCapacity - $booked);
+        $booked = $this->repo->countTablesForSlot($restaurantId, $date, $timeSlot);
+        return max(0, self::MAX_TABLES - $booked);
     }
 
     public function isAvailable(
         Uuid $restaurantId,
         \DateTimeImmutable $date,
         TimeSlot $timeSlot,
-        int $totalCapacity,
-        int $requestedPeople,
     ): bool {
-        return $this->getAvailableCapacity($restaurantId, $date, $timeSlot, $totalCapacity) >= $requestedPeople;
+        return $this->getAvailableTables($restaurantId, $date, $timeSlot) > 0;
+    }
+
+    /** @deprecated Use isAvailable() without capacity param */
+    public function getAvailableCapacity(
+        Uuid $restaurantId,
+        \DateTimeImmutable $date,
+        TimeSlot $timeSlot,
+        int $totalCapacity,
+    ): int {
+        return $this->getAvailableTables($restaurantId, $date, $timeSlot);
     }
 }

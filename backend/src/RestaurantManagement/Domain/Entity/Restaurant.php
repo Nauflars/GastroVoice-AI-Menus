@@ -6,19 +6,41 @@ namespace App\RestaurantManagement\Domain\Entity;
 
 use App\RestaurantManagement\Domain\ValueObject\SeatCapacity;
 use App\RestaurantManagement\Domain\ValueObject\SlotDuration;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'restaurants')]
 class Restaurant
 {
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid')]
     private Uuid $id;
+
+    #[ORM\Column(type: 'string', length: 255)]
     private string $name;
+
+    #[ORM\Column(type: 'string', length: 500)]
     private string $address;
+
+    #[ORM\Column(type: 'string', length: 50)]
     private string $phone;
+
+    #[ORM\Embedded(class: SeatCapacity::class, columnPrefix: 'seat_')]
     private SeatCapacity $seatCapacity;
+
+    #[ORM\Embedded(class: SlotDuration::class, columnPrefix: 'slot_')]
     private SlotDuration $slotDuration;
+
+    #[ORM\Column(type: 'string', length: 100)]
     private string $timezone;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
+
     /** @var list<OpeningHour> */
     private array $openingHours = [];
 

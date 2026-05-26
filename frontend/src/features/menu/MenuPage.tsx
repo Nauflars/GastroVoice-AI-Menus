@@ -67,9 +67,9 @@ export default function MenuPage() {
                       {item.description != null && (
                         <p className="text-sm text-gray-500 mt-1">{item.description}</p>
                       )}
-                      {item.allergens.length > 0 && (
+                      {(item.allergens ?? []).length > 0 && (
                         <p className="text-xs text-amber-600 mt-1">
-                          ⚠ {item.allergens.join(', ')}
+                          ⚠ {(item.allergens ?? []).join(', ')}
                         </p>
                       )}
                     </div>

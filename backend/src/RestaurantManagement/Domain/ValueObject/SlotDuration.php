@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\RestaurantManagement\Domain\ValueObject;
 
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Embeddable]
 final class SlotDuration
 {
+    #[ORM\Column(type: 'integer', name: 'minutes')]
     private int $minutes;
 
     public function __construct(int $minutes)

@@ -26,6 +26,15 @@ final class MenuController extends AbstractController
         private QueryBusInterface $queryBus,
     ) {}
 
+    /** Authenticated endpoint — restaurantId from JWT */
+    #[Route('/menu', methods: ['GET'], priority: 1)]
+    public function getMyMenu(): JsonResponse
+    {
+        $restaurantId = $this->getRestaurantId();
+        $menu = $this->queryBus->ask(new GetActiveMenuQuery($restaurantId));
+        return $this->json($menu);
+    }
+
     /** Public endpoint — no JWT required */
     #[Route('/menu/{restaurantId}', methods: ['GET'])]
     public function getMenu(string $restaurantId): JsonResponse

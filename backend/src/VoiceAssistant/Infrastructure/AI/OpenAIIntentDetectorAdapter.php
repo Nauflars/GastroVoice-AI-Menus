@@ -31,6 +31,7 @@ Respond ONLY with valid JSON in this exact structure:
 }
 
 Always respond in Spanish. Be friendly and helpful. If data is missing, ask for it in the reply field.
+IMPORTANT: When answering questions about the menu, use ONLY the items listed in the restaurant context provided. Do not invent or assume menu items. List the actual item names and prices from the menu.
 PROMPT;
 
     public function __construct(private Client $openai) {}
@@ -38,6 +39,7 @@ PROMPT;
     public function detect(array $messages, array $restaurantContext): IntentDetectionResult
     {
         $systemMessage = self::SYSTEM_PROMPT;
+        $systemMessage .= "\n\nToday's date is: " . date('Y-m-d') . " (use this year when the customer mentions a date without a year).";
         if (!empty($restaurantContext)) {
             $systemMessage .= "\n\nRestaurant context: " . json_encode($restaurantContext);
         }

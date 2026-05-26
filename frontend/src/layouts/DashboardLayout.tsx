@@ -5,6 +5,7 @@ const navItems = [
   { to: '/restaurant', label: '⚙️ Restaurant' },
   { to: '/menu', label: '🍽 Menu' },
   { to: '/menu/import', label: '🤖 AI Menu Import' },
+  { to: '/reservations', label: '📅 Reservas' },
   { to: '/orders', label: '📋 Orders' },
   { to: '/voice', label: '📞 Voice Simulator' },
 ]

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\VoiceAssistant\Application\Command;
 
+use App\Menu\Application\Query\GetActiveMenuQuery;
 use App\Ordering\Application\Command\PlaceOrderCommand;
 use App\Ordering\Application\Command\PlaceOrderLineDTO;
 use App\Reservations\Application\Command\CreateReservationCommand;
 use App\Reservations\Domain\Exception\SlotFullException;
 use App\Shared\Domain\Bus\CommandBusInterface;
+use App\Shared\Domain\Bus\QueryBusInterface;
 use App\VoiceAssistant\Application\Port\IntentDetectorPort;
 use App\VoiceAssistant\Domain\Entity\CallSession;
 use App\VoiceAssistant\Domain\Repository\CallSessionRepositoryInterface;
@@ -33,6 +35,7 @@ final class ProcessVoiceTurnHandler
         private CallSessionRepositoryInterface $sessions,
         private IntentDetectorPort $intentDetector,
         private CommandBusInterface $commandBus,
+        private QueryBusInterface $queryBus,
     ) {}
 
     public function __invoke(ProcessVoiceTurnCommand $command): ProcessVoiceTurnResult
@@ -49,10 +52,23 @@ final class ProcessVoiceTurnHandler
         // Add user turn
         $session->addTurn(ConversationTurn::user($command->userText));
 
+        // Build restaurant context with live menu from DB
+        $menuCategories = $this->queryBus->ask(new GetActiveMenuQuery($command->restaurantId));
+        $restaurantContext = array_merge($command->restaurantContext, ['menu' => $menuCategories]);
+
+        // Build a flat name→{id,price} index for order resolution
+        $menuIndex = [];
+        foreach ($menuCategories as $category) {
+            foreach ($category['items'] ?? [] as $item) {
+                $key = mb_strtolower(trim($item['name']));
+                $menuIndex[$key] = ['id' => $item['id'], 'price' => (float) $item['price'], 'name' => $item['name']];
+            }
+        }
+
         // Detect intent
         $result = $this->intentDetector->detect(
             $session->getHistoryAsMessages(),
-            $command->restaurantContext,
+            $restaurantContext,
         );
 
         // Merge pending data
@@ -64,7 +80,7 @@ final class ProcessVoiceTurnHandler
 
         // Execute action if intent is complete
         if (empty($result->missingFields)) {
-            $replyText = $this->executeIntent($result->intent, $session, $result, $command->restaurantId, $replyText);
+            $replyText = $this->executeIntent($result->intent, $session, $result, $command->restaurantId, $replyText, $menuIndex);
         }
 
         // Add assistant turn
@@ -78,7 +94,7 @@ final class ProcessVoiceTurnHandler
         );
     }
 
-    private function executeIntent(Intent $intent, CallSession $session, $result, string $restaurantId, string $defaultReply): string
+    private function executeIntent(Intent $intent, CallSession $session, $result, string $restaurantId, string $defaultReply, array $menuIndex = []): string
     {
         $data = $session->getPendingData();
 
@@ -91,7 +107,6 @@ final class ProcessVoiceTurnHandler
                         $data['timeSlot'] ?? '13:00',
                         (int) ($data['numPeople'] ?? 1),
                         $data['customerName'] ?? 'Guest',
-                        50, // default capacity — should come from restaurant context
                         $data['customerPhone'] ?? null,
                         $data['customerEmail'] ?? null,
                         $data['notes'] ?? null,
@@ -105,13 +120,29 @@ final class ProcessVoiceTurnHandler
                     );
 
                 case Intent::CreateOrder:
-                    $lines = array_map(fn(array $l) => new PlaceOrderLineDTO(
-                        $l['menuItemId'] ?? Uuid::v7()->toString(),
-                        $l['menuItemName'] ?? 'Unknown item',
-                        (int) ($l['quantity'] ?? 1),
-                        (float) ($l['unitPrice'] ?? 0.0),
-                        $l['currency'] ?? 'EUR',
-                    ), $data['lines'] ?? []);
+                    $rawLines = $data['lines'] ?? [];
+                    $lines = [];
+                    $lineDescriptions = [];
+                    foreach ($rawLines as $l) {
+                        $aiName = $l['menuItemName'] ?? 'Unknown item';
+                        $key = mb_strtolower(trim($aiName));
+                        // Look up real item data by name (exact, then partial match)
+                        $found = $menuIndex[$key] ?? null;
+                        if ($found === null) {
+                            foreach ($menuIndex as $menuKey => $menuItem) {
+                                if (str_contains($menuKey, $key) || str_contains($key, $menuKey)) {
+                                    $found = $menuItem;
+                                    break;
+                                }
+                            }
+                        }
+                        $itemId    = $found['id']    ?? Uuid::v7()->toString();
+                        $itemName  = $found['name']  ?? $aiName;
+                        $unitPrice = $found['price'] ?? (float) ($l['unitPrice'] ?? 0.0);
+                        $qty       = (int) ($l['quantity'] ?? 1);
+                        $lines[] = new PlaceOrderLineDTO($itemId, $itemName, $qty, $unitPrice, 'EUR');
+                        $lineDescriptions[] = sprintf('%d× %s (%.2f EUR)', $qty, $itemName, $unitPrice);
+                    }
 
                     $this->commandBus->dispatch(new PlaceOrderCommand(
                         $restaurantId,
@@ -122,7 +153,8 @@ final class ProcessVoiceTurnHandler
                         $data['notes'] ?? null,
                     ));
                     $session->clearPendingData();
-                    return 'Su pedido ha sido registrado. Estará listo en breve. ¡Hasta luego!';
+                    $summary = implode(', ', $lineDescriptions);
+                    return sprintf('Su pedido ha sido registrado: %s. Estará listo en breve. ¡Hasta luego!', $summary);
 
                 default:
                     return $defaultReply;

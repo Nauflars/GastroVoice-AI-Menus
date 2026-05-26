@@ -1,0 +1,26 @@
+<configuration name="modules.conf" description="Modules">
+  <modules>
+    <!-- Logging -->
+    <load module="mod_console"/>
+    <load module="mod_logfile"/>
+
+    <!-- SIP stack -->
+    <load module="mod_sofia"/>
+
+    <!-- Core apps & commands -->
+    <load module="mod_commands"/>
+    <load module="mod_dptools"/>
+
+    <!-- Scripting -->
+    <load module="mod_lua"/>
+
+    <!-- Audio codecs -->
+    <load module="mod_g711"/>
+    <load module="mod_g722"/>
+
+    <!-- Audio file I/O -->
+    <load module="mod_sndfile"/>
+    <load module="mod_native_file"/>
+    <load module="mod_tone_stream"/>
+  </modules>
+</configuration>

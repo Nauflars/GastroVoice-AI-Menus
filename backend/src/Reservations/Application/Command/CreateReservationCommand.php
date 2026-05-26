@@ -12,7 +12,6 @@ final class CreateReservationCommand
         public readonly string $timeSlot,
         public readonly int $numPeople,
         public readonly string $customerName,
-        public readonly int $restaurantCapacity,
         public readonly ?string $customerPhone = null,
         public readonly ?string $customerEmail = null,
         public readonly ?string $notes = null,

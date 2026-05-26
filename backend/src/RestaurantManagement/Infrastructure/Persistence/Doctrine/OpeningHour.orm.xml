@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\RestaurantManagement\Domain\Entity\OpeningHour" table="opening_hours">
+        <id name="id" type="uuid" column="id">
+            <generator strategy="NONE"/>
+        </id>
+        <field name="restaurantId" type="uuid" column="restaurant_id" nullable="false"/>
+        <field name="dayOfWeek" type="smallint" column="day_of_week" nullable="false"/>
+        <field name="openTime" type="string" length="5" column="open_time" nullable="true"/>
+        <field name="closeTime" type="string" length="5" column="close_time" nullable="true"/>
+        <field name="isClosed" type="boolean" column="is_closed" nullable="false"/>
+    </entity>
+</doctrine-mapping>

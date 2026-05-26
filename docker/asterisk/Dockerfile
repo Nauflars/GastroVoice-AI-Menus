@@ -1,10 +1,11 @@
-FROM asterisk:20-alpine AS base
+FROM andrius/asterisk:latest AS base
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     curl \
     sox \
-    lame
+    lame \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY docker/asterisk/asterisk.conf /etc/asterisk/asterisk.conf
 COPY docker/asterisk/sip.conf /etc/asterisk/sip.conf

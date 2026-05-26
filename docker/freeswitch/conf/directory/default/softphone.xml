@@ -1,0 +1,14 @@
+<include>
+  <!-- SIP account: softphone / gastrovoice123 -->
+  <user id="softphone">
+    <params>
+      <param name="password" value="$${default_password}"/>
+    </params>
+    <variables>
+      <variable name="toll_allow" value="domestic,international,local"/>
+      <variable name="user_context" value="default"/>
+      <variable name="effective_caller_id_name" value="GastroVoice Test"/>
+      <variable name="effective_caller_id_number" value="1000"/>
+    </variables>
+  </user>
+</include>

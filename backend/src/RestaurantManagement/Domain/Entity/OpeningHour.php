@@ -4,15 +4,30 @@ declare(strict_types=1);
 
 namespace App\RestaurantManagement\Domain\Entity;
 
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'opening_hours')]
 class OpeningHour
 {
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid')]
     private Uuid $id;
+
+    #[ORM\Column(type: 'integer')]
     private int $dayOfWeek; // 0=Monday, 6=Sunday
+
+    #[ORM\Column(type: 'string', length: 5, nullable: true)]
     private ?string $openTime; // HH:MM format, null if closed
+
+    #[ORM\Column(type: 'string', length: 5, nullable: true)]
     private ?string $closeTime;
+
+    #[ORM\Column(type: 'boolean')]
     private bool $isClosed;
+
+    #[ORM\Column(type: 'uuid')]
     private Uuid $restaurantId;
 
     public function __construct(

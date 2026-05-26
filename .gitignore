@@ -31,3 +31,7 @@ Thumbs.db
 *.pem
 *.key
 *.cert
+*.jpg
+*.avif
+*Zone.Identifier
+download.*

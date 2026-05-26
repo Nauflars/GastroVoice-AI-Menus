@@ -6,30 +6,60 @@ namespace App\Ordering\Domain\Entity;
 
 use App\Ordering\Domain\ValueObject\OrderSource;
 use App\Ordering\Domain\ValueObject\OrderStatus;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'orders')]
 class Order
 {
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $id;
+
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $restaurantId;
+
+    #[ORM\Column(type: 'string', length: 20, name: 'status')]
+    private string $statusValue;
+
+    #[ORM\Column(type: 'string', length: 20, name: 'source')]
+    private string $sourceValue;
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $tableNumber;
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $customerPhone;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $notes;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
     /** @var OrderLine[] */
     private array $lines = [];
 
-    private string $statusValue;
-    private string $sourceValue;
-
     public function __construct(
-        private Uuid $id,
-        private Uuid $restaurantId,
+        Uuid $id,
+        Uuid $restaurantId,
         OrderStatus $status,
         OrderSource $source,
-        private ?string $tableNumber,
-        private ?string $customerPhone,
-        private ?string $notes,
+        ?string $tableNumber,
+        ?string $customerPhone,
+        ?string $notes,
     ) {
+        $this->id = $id;
+        $this->restaurantId = $restaurantId;
         $this->statusValue = $status->value;
         $this->sourceValue = $source->value;
+        $this->tableNumber = $tableNumber;
+        $this->customerPhone = $customerPhone;
+        $this->notes = $notes;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }

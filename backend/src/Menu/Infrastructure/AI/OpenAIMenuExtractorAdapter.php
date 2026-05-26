@@ -13,7 +13,7 @@ use Symfony\Component\Uid\Uuid;
 
 final class OpenAIMenuExtractorAdapter implements AIMenuExtractorPort
 {
-    private const MODEL = 'gpt-4.1';
+    private const MODEL = 'gpt-4o';
     private const SYSTEM_PROMPT = <<<'PROMPT'
 You are a menu extraction assistant. Extract all menu categories and items from the provided menu image.
 Return a JSON object with this exact structure:

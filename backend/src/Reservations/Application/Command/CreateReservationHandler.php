@@ -24,12 +24,13 @@ final class CreateReservationHandler
     {
         $restaurantId = Uuid::fromString($command->restaurantId);
         $date = new \DateTimeImmutable($command->date);
-        $slot = TimeSlot::fromString($command->timeSlot);
+        // alignToGrid(60) rounds any HH:MM down to the nearest full hour
+        $slot = TimeSlot::fromString($command->timeSlot)->alignToGrid(60);
 
-        if (!$this->checker->isAvailable($restaurantId, $date, $slot, $command->restaurantCapacity, $command->numPeople)) {
+        if (!$this->checker->isAvailable($restaurantId, $date, $slot)) {
             throw new SlotFullException(sprintf(
-                'No availability for slot %s on %s.',
-                $command->timeSlot,
+                'No hay mesas disponibles para las %s del %s. Las 10 mesas están reservadas.',
+                $slot->toString(),
                 $command->date,
             ));
         }

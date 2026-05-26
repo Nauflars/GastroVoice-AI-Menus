@@ -18,5 +18,8 @@ interface ReservationRepositoryInterface
 
     public function sumPeopleForSlot(Uuid $restaurantId, \DateTimeImmutable $date, TimeSlot $timeSlot): int;
 
+    /** Count active (non-cancelled, non-no-show) reservations for a given slot — i.e. tables taken */
+    public function countTablesForSlot(Uuid $restaurantId, \DateTimeImmutable $date, TimeSlot $timeSlot): int;
+
     public function save(Reservation $reservation): void;
 }

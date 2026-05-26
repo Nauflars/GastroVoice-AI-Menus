@@ -53,7 +53,7 @@ services:
     App\Menu\Application\Port\AIMenuExtractorPort:
         alias: App\Menu\Infrastructure\AI\OpenAIMenuExtractorAdapter
 
-    # OpenAI client
+    # OpenAI client — key comes from OPENAI_API_KEY in .env
     OpenAI\Client:
         factory: ['OpenAI', 'client']
         arguments:

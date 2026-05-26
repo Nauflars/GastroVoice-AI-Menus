@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace App\Menu\Domain\ValueObject;
 
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Embeddable]
 final class CategoryName
 {
-    private function __construct(private readonly string $value) {}
+    #[ORM\Column(type: 'string', length: 150, name: 'name')]
+    private string $value = '';
+
+    public function __construct(string $value = '') {
+        $this->value = $value;
+    }
 
     public static function of(string $value): self
     {

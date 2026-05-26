@@ -36,6 +36,7 @@ final class GetActiveMenuHandler
                     'price' => $item->getPrice()->amount(),
                     'currency' => $item->getPrice()->currency(),
                     'isAvailable' => $item->isAvailable(),
+                'allergens' => [],
                 ], $items),
             ];
         }

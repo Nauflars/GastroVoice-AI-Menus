@@ -10,7 +10,6 @@ final class CheckAvailabilityQuery
         public readonly string $restaurantId,
         public readonly string $date,
         public readonly string $timeSlot,
-        public readonly int $numPeople,
-        public readonly int $restaurantCapacity,
+        public readonly int $numPeople = 1,
     ) {}
 }

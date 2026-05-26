@@ -6,25 +6,68 @@ namespace App\Reservations\Domain\Entity;
 
 use App\Reservations\Domain\ValueObject\ReservationStatus;
 use App\Reservations\Domain\ValueObject\TimeSlot;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'reservations')]
 class Reservation
 {
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $id;
+
+    #[ORM\Column(type: 'uuid')]
+    private Uuid $restaurantId;
+
+    #[ORM\Column(type: 'date_immutable')]
+    private \DateTimeImmutable $date;
+
+    #[ORM\Column(type: 'string', length: 5, name: 'time_slot')]
+    private string $timeSlotValue;
+
+    #[ORM\Column(type: 'integer')]
+    private int $numPeople;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private string $customerName;
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    private ?string $customerPhone;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $customerEmail;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $notes;
+
+    #[ORM\Column(type: 'string', length: 20, name: 'status')]
     private string $statusValue;
 
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $createdAt;
+
     private function __construct(
-        private Uuid $id,
-        private Uuid $restaurantId,
-        private \DateTimeImmutable $date,
-        private string $timeSlotValue,
-        private int $numPeople,
-        private string $customerName,
-        private ?string $customerPhone,
-        private ?string $customerEmail,
-        private ?string $notes,
+        Uuid $id,
+        Uuid $restaurantId,
+        \DateTimeImmutable $date,
+        string $timeSlotValue,
+        int $numPeople,
+        string $customerName,
+        ?string $customerPhone,
+        ?string $customerEmail,
+        ?string $notes,
         ReservationStatus $status,
     ) {
+        $this->id = $id;
+        $this->restaurantId = $restaurantId;
+        $this->date = $date;
+        $this->timeSlotValue = $timeSlotValue;
+        $this->numPeople = $numPeople;
+        $this->customerName = $customerName;
+        $this->customerPhone = $customerPhone;
+        $this->customerEmail = $customerEmail;
+        $this->notes = $notes;
         if ($numPeople < 1) {
             throw new \DomainException('Number of people must be at least 1.');
         }

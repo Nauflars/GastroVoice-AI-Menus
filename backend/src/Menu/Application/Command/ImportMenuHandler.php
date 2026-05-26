@@ -28,7 +28,7 @@ final class ImportMenuHandler
         }
 
         $base64 = base64_encode($imageContent);
-        $mimeType = $command->image->getMimeType() ?? 'image/jpeg';
+        $mimeType = $command->image->getClientMimeType() ?? 'image/jpeg';
 
         $preview = $this->extractor->extract($base64, $mimeType);
 

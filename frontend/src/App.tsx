@@ -7,6 +7,7 @@ import MenuPage from '@/features/menu/MenuPage'
 import MenuImportPage from '@/features/menu/MenuImportPage'
 import OrdersPage from '@/features/orders/OrdersPage'
 import VoiceSimulatorPage from '@/pages/VoiceSimulatorPage'
+import ReservationsPage from '@/features/reservations/ReservationsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="restaurant" element={<RestaurantConfigPage />} />
           <Route path="menu" element={<MenuPage />} />
           <Route path="menu/import" element={<MenuImportPage />} />
+          <Route path="reservations" element={<ReservationsPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="voice" element={<VoiceSimulatorPage />} />
         </Route>

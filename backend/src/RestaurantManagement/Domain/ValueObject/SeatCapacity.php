@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\RestaurantManagement\Domain\ValueObject;
 
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Embeddable]
 final class SeatCapacity
 {
+    #[ORM\Column(type: 'integer', name: 'value')]
     private int $value;
 
     public function __construct(int $value)

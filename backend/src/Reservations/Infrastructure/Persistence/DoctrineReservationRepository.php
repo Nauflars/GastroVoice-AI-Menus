@@ -61,6 +61,25 @@ final class DoctrineReservationRepository implements ReservationRepositoryInterf
         return (int) ($result ?? 0);
     }
 
+    public function countTablesForSlot(Uuid $restaurantId, \DateTimeImmutable $date, TimeSlot $timeSlot): int
+    {
+        $result = $this->em->createQueryBuilder()
+            ->select('COUNT(r.id) as total')
+            ->from(Reservation::class, 'r')
+            ->where('r.restaurantId = :rid')
+            ->andWhere('r.date = :date')
+            ->andWhere('r.timeSlotValue = :slot')
+            ->andWhere("r.statusValue NOT IN (:finalStatuses)")
+            ->setParameter('rid', $restaurantId)
+            ->setParameter('date', $date->format('Y-m-d'))
+            ->setParameter('slot', $timeSlot->toString())
+            ->setParameter('finalStatuses', ['cancelled', 'no_show'])
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) ($result ?? 0);
+    }
+
     public function save(Reservation $reservation): void
     {
         $this->em->persist($reservation);

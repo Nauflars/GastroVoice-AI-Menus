@@ -21,7 +21,7 @@ final class OpenAITTSAdapter implements TextToSpeechPort
         ]);
 
         $path = sys_get_temp_dir() . '/' . uniqid('tts_', true) . '.mp3';
-        file_put_contents($path, $response->getBody()->getContents());
+        file_put_contents($path, $response);
         return $path;
     }
 }

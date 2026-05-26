@@ -18,21 +18,16 @@ final class CheckAvailabilityHandler
     {
         $restaurantId = Uuid::fromString($query->restaurantId);
         $date = new \DateTimeImmutable($query->date);
-        $slot = TimeSlot::fromString($query->timeSlot);
+        $slot = TimeSlot::fromString($query->timeSlot)->alignToGrid(60);
 
-        $available = $this->checker->getAvailableCapacity(
-            $restaurantId,
-            $date,
-            $slot,
-            $query->restaurantCapacity,
-        );
+        $availableTables = $this->checker->getAvailableTables($restaurantId, $date, $slot);
 
         return [
-            'isAvailable'       => $available >= $query->numPeople,
-            'availableCapacity' => $available,
-            'requestedPeople'   => $query->numPeople,
-            'date'              => $query->date,
-            'timeSlot'          => $query->timeSlot,
+            'isAvailable'     => $availableTables > 0,
+            'availableTables' => $availableTables,
+            'maxTables'       => ReservationAvailabilityChecker::MAX_TABLES,
+            'date'            => $query->date,
+            'timeSlot'        => $slot->toString(),
         ];
     }
 }

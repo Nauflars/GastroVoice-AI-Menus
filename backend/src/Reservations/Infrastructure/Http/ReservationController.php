@@ -33,8 +33,6 @@ final class ReservationController extends AbstractController
             $restaurantId,
             $request->query->get('date', date('Y-m-d')),
             $request->query->get('timeSlot', '12:00'),
-            (int) $request->query->get('numPeople', 2),
-            (int) $request->query->get('capacity', 50),
         ));
         return $this->json($result);
     }
@@ -64,7 +62,6 @@ final class ReservationController extends AbstractController
                 $data['timeSlot'] ?? '',
                 (int) ($data['numPeople'] ?? 1),
                 $data['customerName'] ?? '',
-                (int) ($data['capacity'] ?? 50),
                 $data['customerPhone'] ?? null,
                 $data['customerEmail'] ?? null,
                 $data['notes'] ?? null,
