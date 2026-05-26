@@ -8,9 +8,11 @@ use App\VoiceAssistant\Application\Port\IntentDetectionResult;
 use App\VoiceAssistant\Application\Port\IntentDetectorPort;
 use App\VoiceAssistant\Domain\ValueObject\Intent;
 use OpenAI\Client;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class OpenAIIntentDetectorAdapter implements IntentDetectorPort
 {
+    private const DEFAULT_MODEL = 'gpt-4.1-mini';
     private const SYSTEM_PROMPT = <<<PROMPT
 You are a telephone assistant for a restaurant. Your job is to detect the customer's intent and extract relevant data.
 
@@ -34,7 +36,11 @@ Always respond in Spanish. Be friendly and helpful. If data is missing, ask for 
 IMPORTANT: When answering questions about the menu, use ONLY the items listed in the restaurant context provided. Do not invent or assume menu items. List the actual item names and prices from the menu.
 PROMPT;
 
-    public function __construct(private Client $openai) {}
+    public function __construct(
+        private Client $openai,
+        #[Autowire(env: 'OPENAI_INTENT_MODEL')]
+        private string $model = self::DEFAULT_MODEL,
+    ) {}
 
     public function detect(array $messages, array $restaurantContext): IntentDetectionResult
     {
@@ -45,7 +51,7 @@ PROMPT;
         }
 
         $response = $this->openai->chat()->create([
-            'model'           => 'gpt-4.1-mini',
+            'model'           => $this->model,
             'response_format' => ['type' => 'json_object'],
             'messages'        => array_merge(
                 [['role' => 'system', 'content' => $systemMessage]],

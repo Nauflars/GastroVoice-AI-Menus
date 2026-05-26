@@ -194,11 +194,11 @@ components:
       type: object
       properties:
         id:            { $ref: "#/components/schemas/UUID" }
-        status:        { type: string, enum: [pending, confirmed, preparing, ready, collected, cancelled] }
-        pickupAt:      { type: string, format: date-time }
+        status:        { type: string, enum: [pending, confirmed, preparing, ready, delivered, cancelled] }
+        source:        { type: string, enum: [web, phone, manual] }
+        tableNumber:   { type: string, nullable: true }
+        customerPhone: { type: string, nullable: true }
         totalAmount:   { type: number }
-        customerName:  { type: string }
-        customerPhone: { type: string }
         notes:         { type: string, nullable: true }
         lines:
           type: array
@@ -207,10 +207,10 @@ components:
 
     CreateOrderRequest:
       type: object
-      required: [pickupAt, customerName, customerPhone, lines]
+      required: [source, lines]
       properties:
-        pickupAt:      { type: string, format: date-time }
-        customerName:  { type: string }
+        source:        { type: string, enum: [web, phone, manual] }
+        tableNumber:   { type: string }
         customerPhone: { type: string }
         notes:         { type: string }
         lines:
@@ -218,16 +218,19 @@ components:
           minItems: 1
           items:
             type: object
-            required: [menuItemId, quantity]
+            required: [menuItemId, menuItemName, quantity, unitPrice]
             properties:
-              menuItemId: { $ref: "#/components/schemas/UUID" }
-              quantity:   { type: integer, minimum: 1 }
+              menuItemId:   { $ref: "#/components/schemas/UUID" }
+              menuItemName: { type: string }
+              quantity:     { type: integer, minimum: 1 }
+              unitPrice:    { type: number, minimum: 0 }
+              currency:     { type: string, default: EUR }
 
     UpdateOrderStatusRequest:
       type: object
       required: [status]
       properties:
-        status: { type: string, enum: [confirmed, preparing, ready, collected, cancelled] }
+        status: { type: string, enum: [confirmed, preparing, ready, delivered, cancelled] }
 
     # ── Reservations ─────────────────────────────────────────────────────────
     Reservation:
@@ -238,9 +241,9 @@ components:
         timeSlot:       { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" }
         numPeople:      { type: integer, minimum: 1 }
         customerName:   { type: string }
-        customerPhone:  { type: string }
+        customerPhone:  { type: string, nullable: true }
         customerEmail:  { type: string, format: email, nullable: true }
-        status:         { type: string, enum: [pending, confirmed, cancelled] }
+        status:         { type: string, enum: [pending, confirmed, cancelled, no_show] }
         notes:          { type: string, nullable: true }
         createdAt:      { type: string, format: date-time }
 
@@ -266,11 +269,13 @@ components:
     # ── Voice ─────────────────────────────────────────────────────────────────
     VoiceSimulateRequest:
       type: object
-      required: [sessionId, message]
+      required: [text, restaurantId]
       properties:
-        sessionId:    { type: string }
-        message:      { type: string }
-        restaurantId: { $ref: "#/components/schemas/UUID" }
+        text:              { type: string, description: "User message text" }
+        restaurantId:      { $ref: "#/components/schemas/UUID" }
+        sessionId:         { type: string, nullable: true, description: "Existing session ID for multi-turn" }
+        callerId:          { type: string, default: unknown }
+        restaurantContext: { type: object, additionalProperties: true }
 
     VoiceSimulateResponse:
       type: object
@@ -545,7 +550,7 @@ paths:
       parameters:
         - name: status
           in: query
-          schema: { type: string, enum: [pending, confirmed, preparing, ready, collected, cancelled] }
+          schema: { type: string, enum: [pending, confirmed, preparing, ready, delivered, cancelled] }
         - name: date
           in: query
           schema: { type: string, format: date }
@@ -644,7 +649,7 @@ paths:
           schema: { type: string, format: date }
         - name: status
           in: query
-          schema: { type: string, enum: [pending, confirmed, cancelled] }
+          schema: { type: string, enum: [pending, confirmed, cancelled, no_show] }
       responses:
         "200":
           description: Reservation list

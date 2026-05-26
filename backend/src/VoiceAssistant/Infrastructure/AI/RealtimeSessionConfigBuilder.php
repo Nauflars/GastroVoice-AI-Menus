@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\VoiceAssistant\Infrastructure\AI;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
 /**
  * Builds the OpenAI Realtime session configuration (instructions + tools).
  * Mirrors the pattern used in OpenAIIntentDetectorAdapter for the text pipeline.
  */
 final class RealtimeSessionConfigBuilder
 {
+    private const DEFAULT_MODEL = 'gpt-4o-mini-realtime';
     private const SYSTEM_PROMPT = <<<PROMPT
 Eres el asistente de voz de %s. Hay un único restaurante; nunca preguntes cuál es.
 
@@ -93,6 +96,11 @@ PROMPT;
         ],
     ];
 
+    public function __construct(
+        #[Autowire(env: 'OPENAI_REALTIME_MODEL')]
+        private string $model = self::DEFAULT_MODEL,
+    ) {}
+
     public function buildInstructions(string $restaurantName): string
     {
         return sprintf(self::SYSTEM_PROMPT, $restaurantName, $restaurantName);
@@ -105,16 +113,16 @@ PROMPT;
     }
 
     /** @return array<string, mixed> Full session config ready for the OpenAI client_secrets body */
-    public function buildSessionConfig(string $restaurantName): array
+    public function buildSessionConfig(string $restaurantName, string $voice = 'coral'): array
     {
         return [
             'type'           => 'realtime',
-            'model'          => 'gpt-realtime-2',
+            'model'          => $this->model,
             'instructions'   => $this->buildInstructions($restaurantName),
             'tools'          => $this->buildTools(),
             'tool_choice'    => 'auto',
             'audio'          => [
-                'output' => ['voice' => 'marin'],
+                'output' => ['voice' => $voice],
                 'input'  => ['transcription' => ['model' => 'whisper-1']],
             ],
             'turn_detection' => ['type' => 'server_vad'],

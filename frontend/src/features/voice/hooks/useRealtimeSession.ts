@@ -2,7 +2,7 @@ import { useRef, useState, useCallback } from 'react';
 import { createRealtimeSession } from '../api';
 import apiClient from '@/lib/apiClient';
 
-const REALTIME_MODEL = 'gpt-realtime-2';
+const REALTIME_MODEL = 'gpt-4o-mini-realtime';
 
 export interface RealtimeMessage {
   role: 'user' | 'assistant';
@@ -13,7 +13,7 @@ interface UseRealtimeSessionReturn {
   messages: RealtimeMessage[];
   status: 'idle' | 'connecting' | 'connected' | 'error';
   error: string | null;
-  start: (restaurantId: string, restaurantName?: string) => Promise<void>;
+  start: (restaurantId: string, restaurantName?: string, voice?: string) => Promise<void>;
   stop: () => void;
 }
 
@@ -166,7 +166,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     }
   }, [addMessage, handleFunctionCall]);
 
-  const start = useCallback(async (restaurantId: string, restaurantName?: string) => {
+  const start = useCallback(async (restaurantId: string, restaurantName?: string, voice?: string) => {
     if (status === 'connected' || status === 'connecting') return;
 
     setStatus('connecting');
@@ -175,7 +175,7 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     restaurantIdRef.current = restaurantId;
 
     try {
-      const session = await createRealtimeSession(restaurantId, restaurantName);
+      const session = await createRealtimeSession(restaurantId, restaurantName, voice);
       const { clientSecret } = session;
 
       const pc = new RTCPeerConnection();

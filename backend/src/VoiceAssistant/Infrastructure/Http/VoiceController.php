@@ -78,7 +78,8 @@ final class VoiceController extends AbstractController
             $request->request->get('callerId', 'unknown'),
         ));
 
-        $audioResponsePath = $this->tts->synthesize($result->replyText);
+        $voice = $request->request->get('voice', 'alloy');
+        $audioResponsePath = $this->tts->synthesize($result->replyText, $voice);
 
         return new BinaryFileResponse($audioResponsePath, Response::HTTP_OK, [
             'Content-Type' => 'audio/mpeg',
@@ -99,8 +100,9 @@ final class VoiceController extends AbstractController
         $data           = $request->toArray();
         $restaurantId   = $data['restaurantId']   ?? '';
         $restaurantName = $data['restaurantName'] ?? 'el restaurante';
+        $voice          = $data['voice']          ?? 'coral';
 
-        $sessionConfig = $this->realtimeConfig->buildSessionConfig($restaurantName);
+        $sessionConfig = $this->realtimeConfig->buildSessionConfig($restaurantName, $voice);
 
         try {
             $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/realtime/client_secrets', [
@@ -131,6 +133,24 @@ final class VoiceController extends AbstractController
                 Response::HTTP_INTERNAL_SERVER_ERROR,
             );
         }
+    }
+
+    /**
+     * Returns Realtime session config for the media-bridge (internal/telephony).
+     * No OpenAI call — just instructions + tools + model so the bridge can
+     * open its own server-to-server Realtime WebSocket.
+     *
+     * GET /api/voice/telephony/session-config?restaurantName=...&voice=coral
+     */
+    #[Route('/telephony/session-config', methods: ['GET'])]
+    public function telephonySessionConfig(Request $request): JsonResponse
+    {
+        $restaurantName = $request->query->get('restaurantName', 'el restaurante');
+        $voice          = $request->query->get('voice', 'coral');
+
+        $config = $this->realtimeConfig->buildSessionConfig($restaurantName, $voice);
+
+        return $this->json($config);
     }
 
 }

@@ -9,11 +9,12 @@ use App\Menu\Application\DTO\MenuImportItemDTO;
 use App\Menu\Application\DTO\MenuImportPreview;
 use App\Menu\Application\Port\AIMenuExtractorPort;
 use OpenAI\Client as OpenAIClient;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Uid\Uuid;
 
 final class OpenAIMenuExtractorAdapter implements AIMenuExtractorPort
 {
-    private const MODEL = 'gpt-4o';
+    private const DEFAULT_MODEL = 'gpt-4.1';
     private const SYSTEM_PROMPT = <<<'PROMPT'
 You are a menu extraction assistant. Extract all menu categories and items from the provided menu image.
 Return a JSON object with this exact structure:
@@ -42,12 +43,16 @@ Rules:
 - Return ONLY the JSON object, no explanation.
 PROMPT;
 
-    public function __construct(private OpenAIClient $openai) {}
+    public function __construct(
+        private OpenAIClient $openai,
+        #[Autowire(env: 'OPENAI_MENU_MODEL')]
+        private string $model = self::DEFAULT_MODEL,
+    ) {}
 
     public function extract(string $imageBase64, string $mimeType): MenuImportPreview
     {
         $response = $this->openai->chat()->create([
-            'model' => self::MODEL,
+            'model' => $this->model,
             'response_format' => ['type' => 'json_object'],
             'messages' => [
                 ['role' => 'system', 'content' => self::SYSTEM_PROMPT],

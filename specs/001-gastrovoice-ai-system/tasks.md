@@ -298,17 +298,17 @@ The public menu endpoint returns active items grouped by category.
 - [x] T157 [P] Add global Symfony exception listener in `backend/src/Shared/Infrastructure/Http/ExceptionListener.php` — maps domain exceptions (`SlotFullException`, `ItemUnavailableException`, etc.) to correct HTTP status codes and `Error` schema responses per OpenAPI contract
 - [x] T158 [P] Add request validation middleware to all Symfony controllers using `symfony/validator` constraints — return 400 with field-level errors
 - [x] T159 [P] Implement pagination for `GET /api/orders` and `GET /api/reservations` (page/limit query params) in respective controllers and query handlers
-- [ ] T160 [P] Add structured Monolog logging to Application handlers and Infrastructure adapters in `backend/config/packages/monolog.yaml`
-- [ ] T161 [P] Add React Router navigation in `frontend/src/app/Router.tsx` with protected route wrapper (redirects to /login if no JWT)
-- [ ] T162 [P] Create `frontend/src/shared/components/` shared UI components: `PageLayout.tsx`, `Sidebar.tsx` (navigation links to all feature pages), `LoadingSpinner.tsx`, `ErrorBoundary.tsx`, `Toast.tsx`
-- [ ] T163 Write Playwright E2E test for critical path: login → configure restaurant → create category → add item → create reservation (accepted) → fill capacity → create reservation (rejected) in `frontend/tests/e2e/critical-path.spec.ts`
-- [ ] T164 [P] Write Playwright E2E test for voice simulation happy path: 5-turn reservation conversation completes successfully in `frontend/tests/e2e/voice-simulation.spec.ts`
+- [x] T160 [P] Add structured Monolog logging to Application handlers and Infrastructure adapters in `backend/config/packages/monolog.yaml`
+- [x] T161 [P] Add React Router navigation in `frontend/src/app/Router.tsx` with protected route wrapper (redirects to /login if no JWT)
+- [x] T162 [P] Create `frontend/src/shared/components/` shared UI components: `PageLayout.tsx`, `Sidebar.tsx` (navigation links to all feature pages), `LoadingSpinner.tsx`, `ErrorBoundary.tsx`, `Toast.tsx`
+- [x] T163 Write Playwright E2E test for critical path: login → configure restaurant → create category → add item → create reservation (accepted) → fill capacity → create reservation (rejected) in `frontend/tests/e2e/critical-path.spec.ts`
+- [x] T164 [P] Write Playwright E2E test for voice simulation happy path: 5-turn reservation conversation completes successfully in `frontend/tests/e2e/voice-simulation.spec.ts`
 - [ ] T165 [P] Run `php bin/phpstan analyse --level=8` across entire `backend/src/`; fix all reported issues
 - [ ] T166 [P] Run `vendor/bin/php-cs-fixer fix` across `backend/src/` and `backend/tests/`
 - [ ] T167 [P] Run `npm run lint` across `frontend/src/` and fix all ESLint + TypeScript strict errors
 - [ ] T168 Validate full quickstart.md walkthrough: `docker compose up -d` → migrate → create-admin → API smoke tests → softphone test → all 10 quickstart steps pass
-- [ ] T169 [P] Review and finalise `contracts/api.openapi.yaml` — verify all implemented endpoints match spec exactly; add any missing response schemas
-- [ ] T170 [P] Create `backend/config/packages/nelmio_api_doc.yaml` to expose Swagger UI at `http://localhost:8080/api/doc`
+- [x] T169 [P] Review and finalise `contracts/api.openapi.yaml` — verify all implemented endpoints match spec exactly; add any missing response schemas
+- [x] T170 [P] Create `backend/config/packages/nelmio_api_doc.yaml` to expose Swagger UI at `http://localhost:8080/api/doc`
 
 **Final Checkpoint**: All PHPUnit suites green; PHPStan level 8 clean; PHP CS Fixer clean; Vitest green; ESLint clean; Playwright E2E passes; quickstart.md walkthrough completes without errors.
 
