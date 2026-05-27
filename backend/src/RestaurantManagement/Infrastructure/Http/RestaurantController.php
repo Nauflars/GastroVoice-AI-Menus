@@ -38,27 +38,20 @@ final class RestaurantController extends AbstractController
 
         $restaurant = $this->queryBus->ask(new GetRestaurantQuery($restaurantId));
 
-        return $this->json([
-            'id' => (string) $restaurant->getId(),
-            'name' => $restaurant->getName(),
-            'address' => $restaurant->getAddress(),
-            'phone' => $restaurant->getPhone(),
-            'seatCapacity' => $restaurant->getSeatCapacity()->value(),
-            'slotDurationMinutes' => $restaurant->getSlotDuration()->minutes(),
-            'timezone' => $restaurant->getTimezone(),
-            'openingHours' => array_map(
-                static fn ($oh) => [
-                    'id' => (string) $oh->getId(),
-                    'dayOfWeek' => $oh->getDayOfWeek(),
-                    'openTime' => $oh->getOpenTime(),
-                    'closeTime' => $oh->getCloseTime(),
-                    'isClosed' => $oh->isClosed(),
-                ],
-                $restaurant->getOpeningHours(),
-            ),
-            'createdAt' => $restaurant->getCreatedAt()->format(\DateTimeInterface::ATOM),
-            'updatedAt' => $restaurant->getUpdatedAt()->format(\DateTimeInterface::ATOM),
-        ]);
+        return $this->json($this->serializeRestaurant($restaurant));
+    }
+
+    /** Public endpoint — no JWT required */
+    #[Route('/{restaurantId}', name: 'restaurant_get_public', methods: ['GET'])]
+    public function getPublic(string $restaurantId): JsonResponse
+    {
+        try {
+            $restaurant = $this->queryBus->ask(new GetRestaurantQuery(Uuid::fromString($restaurantId)));
+        } catch (\DomainException) {
+            return new JsonResponse(['error' => 'Restaurant not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($this->serializeRestaurant($restaurant));
     }
 
     #[Route('', name: 'restaurant_update', methods: ['PUT'])]
@@ -88,7 +81,12 @@ final class RestaurantController extends AbstractController
 
         $restaurant = $this->queryBus->ask(new GetRestaurantQuery($restaurantId));
 
-        return $this->json([
+        return $this->json($this->serializeRestaurant($restaurant));
+    }
+
+    private function serializeRestaurant(object $restaurant): array
+    {
+        return [
             'id' => (string) $restaurant->getId(),
             'name' => $restaurant->getName(),
             'address' => $restaurant->getAddress(),
@@ -108,6 +106,6 @@ final class RestaurantController extends AbstractController
             ),
             'createdAt' => $restaurant->getCreatedAt()->format(\DateTimeInterface::ATOM),
             'updatedAt' => $restaurant->getUpdatedAt()->format(\DateTimeInterface::ATOM),
-        ]);
+        ];
     }
 }

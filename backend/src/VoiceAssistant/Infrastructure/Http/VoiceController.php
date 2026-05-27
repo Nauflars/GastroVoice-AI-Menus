@@ -68,8 +68,16 @@ final class VoiceController extends AbstractController
             return $this->json(['error' => 'audioFile is required'], Response::HTTP_BAD_REQUEST);
         }
 
-        $audioPath  = $audioFile->getRealPath();
-        $transcript = $this->stt->transcribe($audioPath);
+        // Copy to a temp file with the correct extension so Whisper can detect the format
+        $ext = $audioFile->getClientOriginalExtension() ?: 'webm';
+        $audioPath = sys_get_temp_dir() . '/' . uniqid('voice_', true) . '.' . $ext;
+        copy($audioFile->getRealPath(), $audioPath);
+
+        try {
+            $transcript = $this->stt->transcribe($audioPath);
+        } finally {
+            @unlink($audioPath);
+        }
 
         $result = $this->commandBus->dispatch(new ProcessVoiceTurnCommand(
             $request->request->get('restaurantId', ''),
@@ -149,8 +157,11 @@ final class VoiceController extends AbstractController
         $voice          = $request->query->get('voice', 'coral');
 
         $config = $this->realtimeConfig->buildSessionConfig($restaurantName, $voice);
+        $config['audio']['input']['turn_detection'] = ['type' => 'server_vad'];
 
-        return $this->json($config);
+        // Use JsonResponse directly to bypass Symfony serializer
+        // which converts \stdClass (empty object {}) back to [] (empty array)
+        return new JsonResponse($config);
     }
 
 }
