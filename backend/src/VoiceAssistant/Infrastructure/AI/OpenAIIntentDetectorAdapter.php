@@ -18,7 +18,7 @@ You are a telephone assistant for a restaurant. Your job is to detect the custom
 
 Respond ONLY with valid JSON in this exact structure:
 {
-  "intent": "create_reservation|check_availability|create_order|query_menu|unknown",
+  "intent": "create_reservation|check_availability|create_order|query_menu|get_restaurant_info|unknown",
   "data": {
     "date": "YYYY-MM-DD or null",
     "timeSlot": "HH:MM or null",
@@ -34,6 +34,7 @@ Respond ONLY with valid JSON in this exact structure:
 
 Always respond in Spanish. Be friendly and helpful. If data is missing, ask for it in the reply field.
 IMPORTANT: When answering questions about the menu, use ONLY the items listed in the restaurant context provided. Do not invent or assume menu items. List the actual item names and prices from the menu.
+When the customer asks about the restaurant (location, phone number, opening hours, capacity), use the intent "get_restaurant_info" and include the restaurant details from the context in your reply.
 PROMPT;
 
     public function __construct(

@@ -21,16 +21,17 @@ const INTENT_COLORS: Record<string, string> = {
 };
 
 const VOICE_OPTIONS = [
+  { value: 'sage',    label: 'Sage',    desc: 'Cálida (recomendada)' },
+  { value: 'coral',   label: 'Coral',   desc: 'Amigable' },
   { value: 'alloy',   label: 'Alloy',   desc: 'Neutral' },
-  { value: 'ash',     label: 'Ash',     desc: 'Conversational' },
-  { value: 'ballad',  label: 'Ballad',  desc: 'Warm' },
-  { value: 'coral',   label: 'Coral',   desc: 'Friendly' },
-  { value: 'echo',    label: 'Echo',    desc: 'Clear' },
-  { value: 'fable',   label: 'Fable',   desc: 'Expressive' },
-  { value: 'onyx',    label: 'Onyx',    desc: 'Deep' },
-  { value: 'nova',    label: 'Nova',    desc: 'Bright' },
-  { value: 'sage',    label: 'Sage',    desc: 'Calm' },
-  { value: 'shimmer', label: 'Shimmer', desc: 'Soft' },
+  { value: 'ash',     label: 'Ash',     desc: 'Conversacional' },
+  { value: 'ballad',  label: 'Ballad',  desc: 'Cálida' },
+  { value: 'echo',    label: 'Echo',    desc: 'Clara' },
+  { value: 'nova',    label: 'Nova',    desc: 'Brillante' },
+  { value: 'shimmer', label: 'Shimmer', desc: 'Suave' },
+  { value: 'verse',   label: 'Verse',   desc: 'Expresiva' },
+  { value: 'marin',   label: 'Marin',   desc: 'Alta calidad' },
+  { value: 'cedar',   label: 'Cedar',   desc: 'Alta calidad' },
 ] as const;
 
 export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSimulatorProps) {
@@ -41,7 +42,7 @@ export default function VoiceSimulator({ restaurantId, restaurantName }: VoiceSi
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mode, setMode] = useState<Mode>('text');
-  const [selectedVoice, setSelectedVoice] = useState('coral');
+  const [selectedVoice, setSelectedVoice] = useState('sage');
   const bottomRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);

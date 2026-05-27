@@ -34,6 +34,7 @@ security:
         - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/menu$, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/restaurant/.+, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/reservations/availability, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/reservations$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/orders$, roles: PUBLIC_ACCESS, methods: [POST] }

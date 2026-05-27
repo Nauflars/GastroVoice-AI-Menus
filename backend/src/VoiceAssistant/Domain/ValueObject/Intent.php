@@ -10,5 +10,6 @@ enum Intent: string
     case CheckAvailability  = 'check_availability';
     case CreateOrder        = 'create_order';
     case QueryMenu          = 'query_menu';
+    case GetRestaurantInfo  = 'get_restaurant_info';
     case Unknown            = 'unknown';
 }

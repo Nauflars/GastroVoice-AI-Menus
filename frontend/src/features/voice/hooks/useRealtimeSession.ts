@@ -48,7 +48,11 @@ export function useRealtimeSession(): UseRealtimeSessionReturn {
     try {
       const parsed = JSON.parse(args || '{}');
 
-      if (name === 'query_menu') {
+      if (name === 'get_restaurant_info') {
+        const res = await apiClient.get(`/api/restaurant/${restaurantIdRef.current}`);
+        result = res.data;
+
+      } else if (name === 'query_menu') {
         const res = await apiClient.get(`/api/menu/${restaurantIdRef.current}`);
         result = { menu: res.data };
 

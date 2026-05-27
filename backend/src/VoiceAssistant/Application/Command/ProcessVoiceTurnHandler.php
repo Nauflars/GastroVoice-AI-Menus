@@ -9,6 +9,7 @@ use App\Ordering\Application\Command\PlaceOrderCommand;
 use App\Ordering\Application\Command\PlaceOrderLineDTO;
 use App\Reservations\Application\Command\CreateReservationCommand;
 use App\Reservations\Domain\Exception\SlotFullException;
+use App\RestaurantManagement\Application\Query\GetRestaurantQuery;
 use App\Shared\Domain\Bus\CommandBusInterface;
 use App\Shared\Domain\Bus\QueryBusInterface;
 use App\VoiceAssistant\Application\Port\IntentDetectorPort;
@@ -52,9 +53,24 @@ final class ProcessVoiceTurnHandler
         // Add user turn
         $session->addTurn(ConversationTurn::user($command->userText));
 
-        // Build restaurant context with live menu from DB
+        // Build restaurant context with live menu and restaurant info from DB
         $menuCategories = $this->queryBus->ask(new GetActiveMenuQuery($command->restaurantId));
-        $restaurantContext = array_merge($command->restaurantContext, ['menu' => $menuCategories]);
+
+        $restaurantInfo = [];
+        try {
+            $restaurant = $this->queryBus->ask(new GetRestaurantQuery(Uuid::fromString($command->restaurantId)));
+            $restaurantInfo = [
+                'name' => $restaurant->getName(),
+                'address' => $restaurant->getAddress(),
+                'phone' => $restaurant->getPhone(),
+                'seatCapacity' => $restaurant->getSeatCapacity()->value(),
+            ];
+        } catch (\Throwable) {}
+
+        $restaurantContext = array_merge($command->restaurantContext, [
+            'menu' => $menuCategories,
+            'restaurant' => $restaurantInfo,
+        ]);
 
         // Build a flat name→{id,price} index for order resolution
         $menuIndex = [];
@@ -100,6 +116,25 @@ final class ProcessVoiceTurnHandler
 
         try {
             switch ($intent) {
+                case Intent::GetRestaurantInfo:
+                    $restaurant = $this->queryBus->ask(new GetRestaurantQuery(Uuid::fromString($restaurantId)));
+                    $dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                    $hours = array_map(function ($oh) use ($dayNames) {
+                        $day = $dayNames[$oh->getDayOfWeek()] ?? 'Día ' . $oh->getDayOfWeek();
+                        return $oh->isClosed()
+                            ? sprintf('%s: Cerrado', $day)
+                            : sprintf('%s: %s - %s', $day, $oh->getOpenTime(), $oh->getCloseTime());
+                    }, $restaurant->getOpeningHours());
+                    $info = sprintf(
+                        "Restaurante: %s\nDirección: %s\nTeléfono: %s\nCapacidad: %d comensales\nHorarios:\n%s",
+                        $restaurant->getName(),
+                        $restaurant->getAddress(),
+                        $restaurant->getPhone(),
+                        $restaurant->getSeatCapacity()->value(),
+                        implode("\n", $hours) ?: 'No configurados',
+                    );
+                    return $info;
+
                 case Intent::CreateReservation:
                     $this->commandBus->dispatch(new CreateReservationCommand(
                         $restaurantId,
